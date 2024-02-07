@@ -1,15 +1,12 @@
 package service
 
 import (
-	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/charmbracelet/log"
 
 	notionstix "github.com/brittonhayes/notion-stix"
-	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -50,16 +47,4 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
 	return &Service{repo: repo, tokens: make(map[string]string), logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
-}
-
-func (s *Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
-	resp := api.Health{Status: "ok"}
-	return api.GetHealthzJSON200Response(resp)
-}
-
-func (s *Service) GetHello(w http.ResponseWriter, r *http.Request) *api.Response {
-	callbackURL := fmt.Sprintf("https://api.notion.com/v1/oauth/authorize?owner=user&client_id=%s&redirect_uri=%s&response_type=code", url.QueryEscape(s.oauthClientID), url.QueryEscape(s.redirectURI))
-	w.Header().Set("Content-Type", "text/plain")
-	_, _ = w.Write([]byte(callbackURL))
-	return &api.Response{}
 }

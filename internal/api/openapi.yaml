@@ -17,26 +17,6 @@ tags:
   - name: Connect
   - name: Health
 paths: 
-  /hello:
-    get:
-      summary: Get a greeting
-      description: Get a greeting
-      operationId: getHello
-      tags:
-      - Connect
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
   /auth/notion/callback:
     get:
       summary: Connect the Notion STIX Integration
@@ -45,7 +25,7 @@ paths:
       parameters:
         - name: code
           in: query
-          required: true
+          required: false
           schema:
             type: string
           description: The temporary oauth grant code 
@@ -67,35 +47,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /healthz:
-    get:
-      summary: Get health status
-      description: Get health status
-      operationId: getHealthz
-      tags:
-      - Health
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Health'
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 components:
   schemas:
-    Health:
-      required:
-      - status
-      type: object
-      properties:
-        status:
-          type: string
     Error:
       required:
       - code

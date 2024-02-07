@@ -21,9 +21,14 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		return api.ConnectJSON500Response(api.Error{Message: ErrCancel, Code: 500})
 	}
 
+	if params.Code == nil {
+		s.logger.Error("No code received from client")
+		return api.ConnectJSON500Response(api.Error{Message: ErrOAuthGrant, Code: 500})
+	}
+
 	b, err := json.Marshal(&OAuthGrant{
 		GrantType:   "authorization_code",
-		Code:        params.Code,
+		Code:        *params.Code,
 		RedirectURI: s.redirectURI,
 	})
 	if err != nil {

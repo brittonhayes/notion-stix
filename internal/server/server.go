@@ -44,6 +44,9 @@ func New(ctx context.Context, config *Config) *Server {
 
 	r := chi.NewRouter()
 
+	// TODO set secure headers for cookies
+
+	r.Use(middleware.Heartbeat("/healthz"))
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.Logger)
