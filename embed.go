@@ -14,5 +14,5 @@ const (
 )
 
 func (s StixSource) String() string {
-	return [...]string{"./hack/enterprise-attack-14.1.json"}[s-1]
+	return [...]string{"hack/enterprise-attack-14.1.json"}[s-1]
 }
