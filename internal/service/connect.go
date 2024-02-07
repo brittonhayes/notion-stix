@@ -30,6 +30,7 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	}
 	req.SetBasicAuth(s.oauthClientID, s.oauthClientSecret)
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
 
 	s.logger.Info("Requesting token from Notion API")
 	rsp, err := s.client.Do(req)
@@ -45,6 +46,9 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 		return nil
 	}
 
+	s.logger.Info("Received token from Notion API", "access_token_fragment", oauthResponse.AccessToken[0:5])
+
+	// FIXME figure out why access token is not being returned
 	if oauthResponse.AccessToken == "" {
 		s.logger.Error("No token received from Notion API")
 		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
