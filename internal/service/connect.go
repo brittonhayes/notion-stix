@@ -60,6 +60,7 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	}
 
 	s.logger.Info("Token received from Notion API")
+	http.Redirect(w, r, "https://www.notion.so", http.StatusFound)
 	// client := notion.NewClient(token, notion.WithHTTPClient(s.client))
 	// err = s.importSTIXToNotion(client)
 	// if err != nil {
