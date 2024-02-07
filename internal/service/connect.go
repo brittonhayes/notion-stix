@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
-	"github.com/dstotijn/go-notion"
 )
 
 // Connect handles the integration setup request.
@@ -65,12 +64,12 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	}
 
 	s.logger.Info("Token received from Notion API")
-	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
-	err = s.importSTIXToNotion(client)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ConnectJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})
-	}
+	// client := notion.NewClient(token, notion.WithHTTPClient(s.client))
+	// err = s.importSTIXToNotion(client)
+	// if err != nil {
+	// 	s.logger.Error(err)
+	// 	return api.ConnectJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})
+	// }
 
 	return nil
 }
