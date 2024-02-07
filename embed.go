@@ -7,6 +7,9 @@ import (
 //go:embed hack/*.json
 var FS embed.FS
 
+//go:embed web/src/index.html
+var HTML_HOME []byte
+
 type StixSource int
 
 const (

@@ -49,6 +49,9 @@ func New(ctx context.Context, config *Config) *Server {
 	r.Use(middleware.Logger)
 
 	api.Handler(config.Service, api.WithRouter(r))
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(notionstix.HTML_HOME)
+	})
 
 	port := config.Port
 	if port == 0 {
