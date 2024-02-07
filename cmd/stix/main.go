@@ -64,13 +64,15 @@ func main() {
 			return nil
 		},
 		Action: func(c *cli.Context) error {
-			s := server.New(c.Context, &server.Config{
+			config := &server.Config{
 				Repository:  repo,
-				Service:     service.New(repo),
+				Service:     service.New(repo, c.String("notion-auth-url"), c.String("client-id"), c.String("client-secret")),
 				ServiceName: "stix",
 				Environment: "production",
 				Port:        8080,
-			})
+			}
+			s := server.New(c.Context, config)
+			log.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 			return s.ListenAndServe()
 		},
 	}

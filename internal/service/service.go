@@ -30,12 +30,12 @@ type Service struct {
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository) Service {
+func New(repo notionstix.Repository, redirectURL string, oauthClientID string, oauthClientSecret string) Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
-	return Service{repo: repo, client: retryClient.StandardClient()}
+	return Service{repo: repo, client: retryClient.StandardClient(), redirectURL: redirectURL, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
 }
 
 func (s Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
