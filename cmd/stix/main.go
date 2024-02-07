@@ -53,6 +53,13 @@ func main() {
 				Usage:   "The Notion OAuth client secret",
 				EnvVars: []string{"OAUTH_CLIENT_SECRET"},
 			},
+			&cli.IntFlag{
+				Name:    "port",
+				Aliases: []string{"p"},
+				Usage:   "The port to run the server on",
+				EnvVars: []string{"PORT"},
+				Value:   8080,
+			},
 		},
 		Before: func(c *cli.Context) error {
 			b, err := notionstix.FS.ReadFile(notionstix.MitreEnterpriseAttack.String())
@@ -69,7 +76,7 @@ func main() {
 				Service:     service.New(repo, c.String("notion-auth-url"), c.String("client-id"), c.String("client-secret")),
 				ServiceName: "stix",
 				Environment: "production",
-				Port:        8080,
+				Port:        c.Int("port"),
 			}
 			s := server.New(c.Context, config)
 			log.Info("Starting server", "port", config.Port, "service", config.ServiceName)
