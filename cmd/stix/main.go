@@ -1,4 +1,4 @@
-// main is the entry point of the CLI application.
+// Package main is the entry point of the CLI application.
 // It initializes the necessary components, sets up command-line flags,
 // and executes the appropriate actions based on the user's input.
 package main
@@ -36,10 +36,22 @@ func main() {
 				Usage:   "The UUID of the Notion page to create the databases within",
 			},
 			&cli.StringFlag{
-				Name:    "token",
-				Aliases: []string{"t"},
-				Usage:   "The Notion Internal Integration Secret (https://www.notion.so/my-integrations)",
-				EnvVars: []string{"NOTION_TOKEN"},
+				Name:    "notion-auth-url",
+				Aliases: []string{"a"},
+				Usage:   "The Notion auth URL (https://www.notion.so/my-integrations)",
+				EnvVars: []string{"NOTION_AUTH_URL"},
+			},
+			&cli.StringFlag{
+				Name:    "client-id",
+				Aliases: []string{"i"},
+				Usage:   "The Notion OAuth client ID",
+				EnvVars: []string{"OAUTH_CLIENT_ID"},
+			},
+			&cli.StringFlag{
+				Name:    "client-secret",
+				Aliases: []string{"s"},
+				Usage:   "The Notion OAuth client secret",
+				EnvVars: []string{"OAUTH_CLIENT_SECRET"},
 			},
 		},
 		Before: func(c *cli.Context) error {
