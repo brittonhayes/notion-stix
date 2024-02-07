@@ -68,7 +68,6 @@ func main() {
 				Repository:  repo,
 				Service:     service.New(repo),
 				ServiceName: "stix",
-				Addr:        "localhost",
 				Environment: "production",
 				Port:        8080,
 			})

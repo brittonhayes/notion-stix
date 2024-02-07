@@ -15,12 +15,13 @@ servers:
     description: Notion API
 tags:
   - name: Setup
+  - name: Health
 paths: 
-  /authorize:
+  /setup:
     get:
-      summary: Authorize the Notion STIX Integration
-      description: Authorize the Notion STIX Integration to access your Notion workspace
-      operationId: authorize 
+      summary: Setup the Notion STIX Integration
+      description: setup the Notion STIX Integration to access your Notion workspace
+      operationId: setup 
       parameters:
         - name: code
           in: query
@@ -39,8 +40,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /healthz:
+    get:
+      summary: Get health status
+      description: Get health status
+      operationId: getHealthz
+      tags:
+      - Health
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
+    Health:
+      required:
+      - status
+      type: object
+      properties:
+        status:
+          type: string
     Error:
       required:
       - code

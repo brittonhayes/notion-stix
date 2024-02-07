@@ -52,6 +52,10 @@ func New(ctx context.Context, config *Config) *Server {
 
 	api.Handler(config.Service, api.WithRouter(r))
 
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("Welcome to the Notion STIX API"))
+	})
+
 	port := config.Port
 	if port == 0 {
 		port = 8080
