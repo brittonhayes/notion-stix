@@ -62,7 +62,7 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		u, _ := url.Parse(s.redirectURI)
 		u.Query().Add("error", "missing token in request body")
 
-		http.Redirect(w, r, s.redirectURI, http.StatusFound)
+		http.Redirect(w, r, u.String(), http.StatusFound)
 		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
 	}
 
