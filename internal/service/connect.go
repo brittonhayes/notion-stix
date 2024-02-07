@@ -70,6 +70,8 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	s.tokens[body.BotID] = token
 
 	s.logger.Info("Starting notion import for bot", "bot_id", body.BotID)
+
+	//FIXME this is a temporary approach to start a goroutine for the import
 	go s.startNotionImport(body.BotID, body.DuplicatedTemplateID)
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)

@@ -48,7 +48,7 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
-	return &Service{repo: repo, logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
+	return &Service{repo: repo, tokens: make(map[string]string), logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
 }
 
 func (s *Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
