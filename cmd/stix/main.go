@@ -4,7 +4,6 @@
 package main
 
 import (
-	"net/url"
 	"os"
 	"sort"
 
@@ -88,7 +87,7 @@ func main() {
 			return s.ListenAndServe()
 		},
 	}
-	url.QueryEscape("")
+
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 
