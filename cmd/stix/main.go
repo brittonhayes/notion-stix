@@ -31,9 +31,8 @@ func main() {
 		Usage: "An integration for importing STIX-format Threat Intelligence into Notion",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "page-id",
-				Aliases: []string{"p"},
-				Usage:   "The UUID of the Notion page to create the databases within",
+				Name:  "page-id",
+				Usage: "The UUID of the Notion page to create the databases within",
 			},
 			&cli.StringFlag{
 				Name:    "notion-auth-url",
