@@ -40,14 +40,14 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	}
 	defer rsp.Body.Close()
 
-	var body OAuthAccessToken
-	if err = json.NewDecoder(rsp.Body).Decode(&body); err != nil {
+	var oauthResponse OAuthAccessToken
+	if err = json.NewDecoder(rsp.Body).Decode(&oauthResponse); err != nil {
 		log.Error(err)
 		return api.ConnectJSON500Response(api.Error{Message: ErrTokenDecode, Code: 500})
 	}
 	log.Info("Token received from Notion API")
 
-	client := notion.NewClient(body.AccessToken, notion.WithHTTPClient(s.client))
+	client := notion.NewClient(oauthResponse.AccessToken, notion.WithHTTPClient(s.client))
 	err = s.importSTIXToNotion(client)
 	if err != nil {
 		log.Error(err)

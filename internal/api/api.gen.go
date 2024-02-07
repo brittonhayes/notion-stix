@@ -122,7 +122,7 @@ func GetHelloJSON404Response(body Error) *Response {
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Connect the Notion STIX Integration
-	// (GET /connect)
+	// (GET /auth/notion/callback)
 	Connect(w http.ResponseWriter, r *http.Request, params ConnectParams) *Response
 	// Get health status
 	// (GET /healthz)
@@ -318,7 +318,7 @@ func Handler(si ServerInterface, opts ...ServerOption) http.Handler {
 	}
 
 	r.Route(options.BaseURL, func(r chi.Router) {
-		r.Get("/connect", wrapper.Connect)
+		r.Get("/auth/notion/callback", wrapper.Connect)
 		r.Get("/healthz", wrapper.GetHealthz)
 		r.Get("/hello", wrapper.GetHello)
 	})
@@ -346,18 +346,18 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8yUTW/jNhCG/wox7VGQnMS96BYUbWIUbQMkhwKBDyw9kZhKJDMcxXEN//fFSJS/k+xh",
-	"F9iTZfLlS84zH2swvg3eoeMI5RqiqbHV/edvRJ7kA990GxqUT+MXCOV0Ms2gxRh1hVDCX57V775zC9hk",
-	"EMgHJLYYd/o1PHlqNUMJ1vHVJWTAq4DDX6yQ5ODWbz1uRibrKthsMiB86SzhAsrHwXOnn2/N/L/PaFi8",
-	"blE3XIvV4XMia+7i51ck3am1CK178kNsjrVh+XS6TSCsd+r+YfaPmklkpGUBMuiogRJq5hDLolgul7nr",
-	"tXn08t4FRkM29OISHmoblY2Ka1TvWKrru1muZqx00/hlVCvfKfbKJgUqxTWh5n6laWyFzqBaaNay4pNt",
-	"Dhk01qCLuBfFn7OHkxf7gC76jgzmnqoiHYqFaDcZsOVmHwDbtyMAr0hxiO4in+QTOSSeOlgo4Sq/yCeQ",
-	"QdBc99kpjHcOB7YV9j+HiH4d9j9ExF5pYzD2dGiULT39F4M2UkJSGr12tth59u8g3SIjRSgf1yfZQcXY",
-	"Bk+aVsrrjmtVkXasUmFaUb10SCvIRqZpa1djTB1mqdvO1eNcxDF4oSz7l5PJKYW//xCOvwxbUo7oelY6",
-	"hMaaPrLiOYp0vXfVz4RPUMJPxa7zi9T2xdDzfZkfXiVgyelG3SO9IqlRmEHs2lbT6uuSIp2vK8G6xT0X",
-	"k6LuO/b/dxN+g6wGjUrNeZy+G+TbZHKe3TcBlCbLGUJDMqaT6fdPxt7APUjAOUgj7vTwkXbT+A9Za1UR",
-	"IksxngUt5z/FzPjGRWi0PQr6uNh/VJYHEM7UrRzo2+HcnEgdcH03O5mmOthx/hvfgjR7ct8O4fGWTbZd",
-	"GktvvvkSAAD//9J4UFq1BwAA",
+	"H4sIAAAAAAAC/8yVy27rNhCGX4WYdilIPom70S4o2sQo2gZIFgUCLxh6IjGhSGY4iuMafvdidPE9SRct",
+	"cHYy+fMn55uL12BCE4NHzwnKNSRTY6O7z1+IAskHvusmOpRPExYI5XQyzaDBlHSFUMIfgdWvofUL2GQQ",
+	"KUQktph2+jU8BWo0QwnW8+UFZMCriP1PrJDk4NZvPW4mJusr2GwyIHxtLeECyofec6efb83C4zMaFq8b",
+	"1I5rsTp8TmLNbfr6ikF3ai1C659CH5tnbVg+vW4GEDZ4dXc/+0vNJDLSsgAZtOSghJo5prIolstl7jtt",
+	"noK8d4HJkI2duIT72iZlk+Ia1QeW6up2lqsZK+1cWCa1Cq3ioOygQKW4JtTcrThnK/QG1UKzlpUw2OaQ",
+	"gbMGfcK9KH6f3Z+8OET0KbRkMA9UFcOhVIh2kwFbdvsA2L4fAXhDSn103/JJPpFD4qmjhRIu82/5BDKI",
+	"musuO4VuuS56RIXRzj1q8yIbFXa8D3n9HLxHw5/y4qC0MZg6VDTKloFeUtRG6knqpNPOFjvP7lGkG2Sk",
+	"BOXD+iRVqBibGEjTSgV5tqpIe1ZDlVpRvbZIK8hGwMPWruCYWsyG1jtXnHMRpxgEuexfTCanFP78TaD+",
+	"1G9JbaLvWOkYnTVdZMVzEul676ofCZ+ghB+K3RgohhlQ9AOgq/nDqwQsee3UHdIbkhqFGaS2aTSt/l1S",
+	"ZAzoSrBucc/FpKi79v37w4RfI6teo4ZOPU7fNfLNYHKe3X8CaBgzZwj1yZhOpv9/Mvam70ECzkEacQ8P",
+	"H2k7Fz5lrVVFiCzFeBa0nP8SM+M7F9FpexT0cbF/rywPIJypWznQtcO5OTF0wNXt7GS06mjHPwMTGpBm",
+	"H9y3E3m8ZZNtl8bSm2/+CQAA///xGCywwgcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

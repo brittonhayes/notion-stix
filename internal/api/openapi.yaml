@@ -37,7 +37,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /connect:
+  /auth/notion/callback:
     get:
       summary: Connect the Notion STIX Integration
       description: Connect the Notion STIX Integration to access your Notion workspace
