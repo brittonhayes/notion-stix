@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/dstotijn/go-notion"
@@ -56,17 +57,22 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 
 	token := body.AccessToken
 
-	if token == "" {
+	if token == "foo" {
 		s.logger.Error("No token received from Notion API")
+		u, _ := url.Parse(s.redirectURI)
+		u.Query().Add("error", "missing token in request body")
+
+		http.Redirect(w, r, s.redirectURI, http.StatusFound)
 		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
 	}
 
 	s.logger.Info("Token received from Notion API")
 	s.tokens[body.BotID] = token
-	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
 	s.logger.Info("Starting notion import for bot", "bot_id", body.BotID)
 	go s.startNotionImport(body.BotID, body.DuplicatedTemplateID)
+
+	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
 	return nil
 }
