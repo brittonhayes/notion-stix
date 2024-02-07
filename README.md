@@ -6,6 +6,8 @@
 
 Integrate Threat intelligence into your Notion workspace with **notion-stix**. Designed to bring STIX (Structured Threat Information eXpression) formatted threat intelligence data directly into Notion, making it simpler than ever to organize, track, and correlate security threats.
 
+## [View the website](https://notion-stix.up.railway.app/)
+
 ## 🌟 Features
 
 - **Seamless Integration**: Easily integrate STIX formatted files into your Notion workspace.
@@ -36,6 +38,13 @@ docker run -e NOTION_API_KEY="<your-api-key>" -t ghcr.io/brittonhayes/notion-sti
 ```
 
 Congratulations! 🎉 Your Notion workspace is now empowered with MITRE threat intelligence.
+
+## 📷 Preview
+
+<img src='.github/assets/malware.png' width='400'>
+<img src='.github/assets/attack-patterns.png' width='400'>
+<img src='.github/assets/campaigns.png' width='400'>
+
 
 ## 🤝 Contributing
 
