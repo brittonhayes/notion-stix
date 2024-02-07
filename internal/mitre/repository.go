@@ -18,7 +18,7 @@ func NewRepository(data []byte, options ...Option) notionstix.Repository {
 
 	m := MITRE{
 		collection: c,
-		Logger:     slog.New(slog.NewTextHandler(os.Stderr, nil)),
+		Logger:     slog.New(slog.NewTextHandler(os.Stdout, nil)),
 	}
 
 	for _, option := range options {

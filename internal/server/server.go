@@ -50,9 +50,6 @@ func New(ctx context.Context, config *Config) *Server {
 
 	api.Handler(config.Service, api.WithRouter(r))
 
-	// r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-	// })
-
 	port := config.Port
 	if port == 0 {
 		port = 8080
