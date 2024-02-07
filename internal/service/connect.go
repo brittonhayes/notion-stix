@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -46,7 +47,7 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 		return nil
 	}
 
-	s.logger.Info("Received token from Notion API", "access_token_fragment", oauthResponse.AccessToken[0:5])
+	fmt.Println(oauthResponse)
 
 	// FIXME figure out why access token is not being returned
 	if oauthResponse.AccessToken == "" {
