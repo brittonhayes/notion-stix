@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -44,6 +45,8 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 
 	if resp.StatusCode != http.StatusOK {
 		s.logger.Error(fmt.Errorf("Notion API returned status code %d", resp.StatusCode))
+		b, _ := io.ReadAll(resp.Body)
+		fmt.Println(string(b))
 		return api.ConnectJSON500Response(api.Error{Message: ErrTokenRequest, Code: 500})
 	}
 
@@ -54,8 +57,6 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	}
 
 	token := body.AccessToken
-
-	fmt.Println(body)
 
 	// FIXME figure out why access token is not being returned
 	if token == "" {
