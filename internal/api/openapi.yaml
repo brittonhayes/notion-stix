@@ -1,0 +1,57 @@
+openapi: "3.1.0"
+info:
+  title: Notion Stix Integration
+  version: "1.0.0"
+  description: "This is the Notion STIX Integration API. It allows you to integrate  threat intelligence data into Notion."
+  contact:
+    name: Notion STIX Integration
+    url: https://www.notion.so
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+security: []
+servers:
+  - url: https://api.notion.com
+    description: Notion API
+tags:
+  - name: Setup
+paths: 
+  /authorize:
+    get:
+      summary: Authorize the Notion STIX Integration
+      description: Authorize the Notion STIX Integration to access your Notion workspace
+      operationId: authorize 
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The temporary oauth grant code 
+      tags:
+        - Setup
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      example:
+        code: 404
+        message: Not Found

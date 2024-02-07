@@ -1,0 +1,5 @@
+[deploy]
+dockerfilePath = "Dockerfile"
+startCommand = "/bin/stix"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5
