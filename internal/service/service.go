@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -45,9 +46,8 @@ func (s Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Respons
 }
 
 func (s Service) Hello(w http.ResponseWriter, r *http.Request) *api.Response {
-	url := fmt.Sprintf("https://api.notion.com/v1/oauth/authorize?owner=user&client_id=%s&redirect_uri=%s&response_type=code", s.oauthClientID, s.redirectURI)
-
-	_, _ = w.Write([]byte(url))
+	callbackURL := fmt.Sprintf("https://api.notion.com/v1/oauth/authorize?owner=user&client_id=%s&redirect_uri=%s&response_type=code", s.oauthClientID, s.redirectURI)
+	_, _ = w.Write([]byte(url.QueryEscape(callbackURL)))
 
 	return &api.Response{}
 }
