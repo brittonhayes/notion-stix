@@ -2,7 +2,7 @@
 package mitre
 
 import (
-	"log/slog"
+	"github.com/charmbracelet/log"
 
 	"github.com/TcM1911/stix2"
 	"github.com/dstotijn/go-notion"
@@ -12,14 +12,14 @@ import (
 // integrating the MITRE ATT&CK framework in Notion.
 type MITRE struct {
 	collection *stix2.Collection
-	Logger     *slog.Logger
+	Logger     *log.Logger
 }
 
 // Option is a functional option for configuring the MITRE struct.
 type Option func(*MITRE)
 
 // WithLogger sets the logger for the MITRE struct.
-func WithLogger(logger *slog.Logger) Option {
+func WithLogger(logger *log.Logger) Option {
 	return func(m *MITRE) {
 		m.Logger = logger
 	}

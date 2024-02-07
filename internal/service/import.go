@@ -4,17 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/brittonhayes/notion-stix/internal/mitre"
 	"github.com/dstotijn/go-notion"
 )
 
-func (s Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
+func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
 	limiter := time.Tick(600 * time.Millisecond)
 
-	attackPatterns := s.repo.AttackPatterns()
-	s.logger.Info("Found attack patterns intel", "records", len(attackPatterns))
-
-	s.logger.Info("Creating Notion database", "title", mitre.ATTACK_PATTERN_DATABASE_TITLE)
+	attackPatterns := s.repo.ListAttackPatterns()
 	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, client, pageID)
 	if err != nil {
 		return err
@@ -31,13 +27,10 @@ func (s Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client
 	return nil
 }
 
-func (s Service) importCampaignsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
+func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
 	limiter := time.Tick(600 * time.Millisecond)
 
-	campaigns := s.repo.Campaigns()
-	s.logger.Info("Found campaigns intel", "records", len(campaigns))
-
-	s.logger.Info("Creating notion database", "title", mitre.CAMPAIGNS_DATABASE_TITLE)
+	campaigns := s.repo.ListCampaigns()
 	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, client, pageID)
 	if err != nil {
 		return err
@@ -53,14 +46,11 @@ func (s Service) importCampaignsIntelToNotionDB(ctx context.Context, client *not
 	return nil
 }
 
-func (s Service) importMalwareIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
+func (s *Service) importMalwareIntelToNotionDB(ctx context.Context, client *notion.Client, parentPageID string) error {
 	limiter := time.Tick(600 * time.Millisecond)
 
-	malware := s.repo.Malware()
-	s.logger.Info("Found malware intel", "records", len(malware))
-
-	s.logger.Info("Creating notion database", "title", mitre.MALWARE_DATABASE_TITLE)
-	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, client, pageID)
+	malware := s.repo.ListMalware()
+	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, client, parentPageID)
 	if err != nil {
 		return err
 	}
@@ -75,23 +65,22 @@ func (s Service) importMalwareIntelToNotionDB(ctx context.Context, client *notio
 	return nil
 }
 
-func (s Service) importSTIXToNotion(client *notion.Client) error {
+func (s *Service) importSTIXToNotion(client *notion.Client, parentPageID string) error {
 
 	s.logger.Info("Creating notion pages (this might take a while)")
 
 	ctx := context.Background()
-	parentPage := "257d3f4e70f246cbad438971f691ed2d"
-	err := s.importAttackPatternsIntelToNotionDB(ctx, client, parentPage)
+	err := s.importAttackPatternsIntelToNotionDB(ctx, client, parentPageID)
 	if err != nil {
 		return err
 	}
 
-	err = s.importCampaignsIntelToNotionDB(ctx, client, parentPage)
+	err = s.importCampaignsIntelToNotionDB(ctx, client, parentPageID)
 	if err != nil {
 		return err
 	}
 
-	err = s.importMalwareIntelToNotionDB(ctx, client, parentPage)
+	err = s.importMalwareIntelToNotionDB(ctx, client, parentPageID)
 	if err != nil {
 		return err
 	}

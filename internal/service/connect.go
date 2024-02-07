@@ -11,9 +11,11 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
-// Connect handles the integration setup request.
-// It performs the OAuth token exchange with Notion API and returns an API response.
-func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.ConnectParams) *api.Response {
+// Connect handles the connection request from the client.
+// It receives the authorization code from the client and exchanges it for an access token from the Notion API.
+// The access token is then used to redirect the client to the Notion URL.
+// If any errors occur during the process, appropriate error responses are returned.
+func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.ConnectParams) *api.Response {
 	b, err := json.Marshal(&OAuthGrant{
 		GrantType:   "authorization_code",
 		Code:        params.Code,
@@ -34,7 +36,6 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	req.Header.Add("Accept", "application/json")
 
 	s.logger.Info("Requesting token from Notion API")
-
 	resp, err := s.client.Do(req)
 	if err != nil {
 		s.logger.Error(err)
@@ -61,14 +62,31 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	}
 
 	s.logger.Info("Token received from Notion API")
-	http.Redirect(w, r, "https://www.notion.so", http.StatusFound)
+	s.tokens[body.BotID] = token
+	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
-	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
-	err = s.importSTIXToNotion(client)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ConnectJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})
-	}
+	s.logger.Info("Starting notion import for bot", "bot_id", body.BotID)
+	go s.startNotionImport(body.BotID, body.DuplicatedTemplateID)
 
 	return nil
+}
+
+func (s *Service) startNotionImport(botID string, parentPageID string) {
+	// Retrieve the token from storage
+	token, exists := s.tokens[botID]
+	if !exists {
+		s.logger.Error("Token not found for botID:", botID)
+		return
+	}
+
+	// Create a new Notion client with the token
+	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
+
+	// Perform the import operation
+	err := s.importSTIXToNotion(client, parentPageID)
+	if err != nil {
+		s.logger.Error(err)
+	} else {
+		s.logger.Info("STIX import to Notion completed successfully")
+	}
 }

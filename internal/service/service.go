@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	NOTION_URL       = "https://www.notion.so/"
 	NOTION_OAUTH_URL = "https://api.notion.com/v1/oauth/token"
 
 	ErrOAuthGrant   = "internal server error caused by oauth grant content"
@@ -35,23 +36,27 @@ type Service struct {
 	redirectURI       string
 	oauthClientID     string
 	oauthClientSecret string
+
+	// FIXME this is a super temporary solution to store the access tokens
+	// in memory
+	tokens map[string]string
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string) Service {
+func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string) *Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
-	return Service{repo: repo, logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
+	return &Service{repo: repo, logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
 }
 
-func (s Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
+func (s *Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
 	resp := api.Health{Status: "ok"}
 	return api.GetHealthzJSON200Response(resp)
 }
 
-func (s Service) GetHello(w http.ResponseWriter, r *http.Request) *api.Response {
+func (s *Service) GetHello(w http.ResponseWriter, r *http.Request) *api.Response {
 	callbackURL := fmt.Sprintf("https://api.notion.com/v1/oauth/authorize?owner=user&client_id=%s&redirect_uri=%s&response_type=code", url.QueryEscape(s.oauthClientID), url.QueryEscape(s.redirectURI))
 	w.Header().Set("Content-Type", "text/plain")
 	_, _ = w.Write([]byte(callbackURL))

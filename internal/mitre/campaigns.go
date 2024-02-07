@@ -2,7 +2,6 @@ package mitre
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/TcM1911/stix2"
 	"github.com/dstotijn/go-notion"
@@ -41,8 +40,8 @@ var CAMPAIGN_PROPERTIES = notion.DatabaseProperties{
 	},
 }
 
-// Campaigns returns all campaigns in the collection.
-func (m *MITRE) Campaigns() []*stix2.Campaign {
+// ListCampaigns returns all campaigns in the collection.
+func (m *MITRE) ListCampaigns() []*stix2.Campaign {
 	return m.collection.Campaigns()
 }
 
@@ -62,6 +61,8 @@ func (m *MITRE) CreateCampaignsDatabase(ctx context.Context, client *notion.Clie
 			Emoji: notion.StringPtr(CAMPAIGNS_DATABASE_ICON),
 		},
 	}
+
+	m.Logger.Info("Creating Notion database", "title", CAMPAIGNS_DATABASE_TITLE)
 	return client.CreateDatabase(ctx, params)
 }
 
@@ -122,6 +123,6 @@ func (m *MITRE) CreateCampaignPage(ctx context.Context, client *notion.Client, d
 		},
 	}
 
-	m.Logger.DebugContext(ctx, "creating page", slog.String("name", campaign.Name), slog.String("type", "campaign"))
+	m.Logger.Debug("Creating page", "name", campaign.Name, "type", "campaign")
 	return client.CreatePage(ctx, properties)
 }

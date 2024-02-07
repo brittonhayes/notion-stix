@@ -2,7 +2,6 @@ package mitre
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/TcM1911/stix2"
 	"github.com/dstotijn/go-notion"
@@ -31,8 +30,8 @@ var ATTACK_PATTERN_PROPERTIES = notion.DatabaseProperties{
 	},
 }
 
-// AttackPatterns returns all attack patterns in the collection.
-func (m *MITRE) AttackPatterns() []*stix2.AttackPattern {
+// ListAttackPatterns returns all attack patterns in the collection.
+func (m *MITRE) ListAttackPatterns() []*stix2.AttackPattern {
 	return m.collection.AttackPatterns()
 }
 
@@ -53,6 +52,7 @@ func (m *MITRE) CreateAttackPatternsDatabase(ctx context.Context, client *notion
 		},
 	}
 
+	m.Logger.Info("Creating Notion database", "title", ATTACK_PATTERN_DATABASE_TITLE)
 	return client.CreateDatabase(ctx, params)
 }
 
@@ -101,6 +101,6 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 		},
 	}
 
-	m.Logger.DebugContext(ctx, "creating page", slog.String("name", attackPattern.Name), slog.String("type", "attack-pattern"))
+	m.Logger.Debug("Creating page", "name", attackPattern.Name, "type", "attack-pattern")
 	return client.CreatePage(ctx, properties)
 }

@@ -2,7 +2,6 @@ package mitre
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/TcM1911/stix2"
 	"github.com/dstotijn/go-notion"
@@ -33,8 +32,8 @@ var INDICATOR_PROPERTIES = notion.DatabaseProperties{
 	},
 }
 
-// Indicators returns all the indicators in the MITRE collection.
-func (m *MITRE) Indicators() []*stix2.Indicator {
+// ListIndicators returns all the indicators in the MITRE collection.
+func (m *MITRE) ListIndicators() []*stix2.Indicator {
 	return m.collection.Indicators()
 }
 
@@ -54,6 +53,8 @@ func (m *MITRE) CreateIndicatorsDatabase(ctx context.Context, client *notion.Cli
 			Emoji: notion.StringPtr(INDICATOR_DATABASE_ICON),
 		},
 	}
+
+	m.Logger.Info("Creating Notion database", "title", INDICATOR_DATABASE_TITLE)
 	return client.CreateDatabase(ctx, params)
 }
 
@@ -102,6 +103,6 @@ func (m *MITRE) CreateIndicatorPage(ctx context.Context, client *notion.Client, 
 			},
 		},
 	}
-	m.Logger.DebugContext(ctx, "creating page", slog.String("name", indicator.Name), slog.String("type", "indicator"))
+	m.Logger.Debug("Creating page", "name", indicator.Name, "type", "indicator")
 	return client.CreatePage(ctx, properties)
 }

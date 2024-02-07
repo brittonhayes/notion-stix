@@ -1,8 +1,9 @@
 package mitre
 
 import (
-	"log/slog"
 	"os"
+
+	"github.com/charmbracelet/log"
 
 	"github.com/TcM1911/stix2"
 	notionstix "github.com/brittonhayes/notion-stix"
@@ -18,7 +19,7 @@ func NewRepository(data []byte, options ...Option) notionstix.Repository {
 
 	m := MITRE{
 		collection: c,
-		Logger:     slog.New(slog.NewTextHandler(os.Stdout, nil)),
+		Logger:     log.New(os.Stderr),
 	}
 
 	for _, option := range options {
