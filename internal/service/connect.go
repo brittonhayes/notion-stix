@@ -34,29 +34,37 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	req.Header.Add("Accept", "application/json")
 
 	s.logger.Info("Requesting token from Notion API")
-	rsp, err := s.client.Do(req)
+
+	resp, err := s.client.Do(req)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ConnectJSON500Response(api.Error{Message: ErrTokenRequest, Code: 500})
 	}
-	defer rsp.Body.Close()
+	defer resp.Body.Close()
 
-	var oauthResponse OAuthAccessToken
-	if err = json.NewDecoder(rsp.Body).Decode(&oauthResponse); err != nil {
+	if resp.StatusCode != http.StatusOK {
+		s.logger.Error(fmt.Errorf("Notion API returned status code %d", resp.StatusCode))
+		return api.ConnectJSON500Response(api.Error{Message: ErrTokenRequest, Code: 500})
+	}
+
+	var body OAuthAccessToken
+	if err = json.NewDecoder(resp.Body).Decode(&body); err != nil {
 		s.logger.Error(err)
 		return nil
 	}
 
-	fmt.Println(oauthResponse)
+	token := body.AccessToken
+
+	fmt.Println(body)
 
 	// FIXME figure out why access token is not being returned
-	if oauthResponse.AccessToken == "" {
+	if token == "" {
 		s.logger.Error("No token received from Notion API")
 		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
 	}
 
 	s.logger.Info("Token received from Notion API")
-	client := notion.NewClient(oauthResponse.AccessToken, notion.WithHTTPClient(s.client))
+	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
 	err = s.importSTIXToNotion(client)
 	if err != nil {
 		s.logger.Error(err)

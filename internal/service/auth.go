@@ -1,12 +1,11 @@
 package service
 
 type OAuthAccessToken struct {
-	AccessToken          string `json:"access_token,omitempty"`
-	WorkspaceID          string `json:"workspace_id,omitempty"`
-	WorkspaceName        string `json:"workspace_name,omitempty"`
-	WorkspaceIcon        string `json:"workspace_icon,omitempty"`
-	BotID                string `json:"bot_id,omitempty"`
-	DuplicatedTemplateID string `json:"duplicated_template_id,omitempty"`
+	AccessToken   string `json:"access_token,omitempty"`
+	WorkspaceID   string `json:"workspace_id,omitempty"`
+	WorkspaceName string `json:"workspace_name,omitempty"`
+	WorkspaceIcon string `json:"workspace_icon,omitempty"`
+	BotID         string `json:"bot_id,omitempty"`
 }
 
 type OAuthGrant struct {
