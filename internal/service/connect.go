@@ -45,6 +45,11 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 		return api.ConnectJSON500Response(api.Error{Message: ErrTokenDecode, Code: 500})
 	}
 
+	if oauthResponse.AccessToken == "" {
+		s.logger.Error("No token received from Notion API")
+		return api.ConnectJSON500Response(api.Error{Message: ErrTokenDecode, Code: 500})
+	}
+
 	s.logger.Info("Token received from Notion API")
 	client := notion.NewClient(oauthResponse.AccessToken, notion.WithHTTPClient(s.client))
 	err = s.importSTIXToNotion(client)

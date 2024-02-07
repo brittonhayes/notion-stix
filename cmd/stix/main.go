@@ -26,6 +26,8 @@ func main() {
 		repo notionstix.Repository
 	)
 
+	logger := log.New(os.Stdout)
+
 	app := &cli.App{
 		Name:  "notion-stix",
 		Usage: "An integration for importing STIX-format Threat Intelligence into Notion",
@@ -83,7 +85,8 @@ func main() {
 				Port:        c.Int("port"),
 			}
 			s := server.New(c.Context, config)
-			log.Info("Starting server", "port", config.Port, "service", config.ServiceName)
+
+			logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 			return s.ListenAndServe()
 		},
 	}
@@ -92,6 +95,6 @@ func main() {
 	sort.Sort(cli.CommandsByName(app.Commands))
 
 	if err := app.Run(os.Args); err != nil {
-		log.Error("Error running CLI", "error", err)
+		logger.Error("Error running CLI", "error", err)
 	}
 }
