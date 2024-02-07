@@ -17,6 +17,7 @@ const (
 	NOTION_OAUTH_URL = "https://api.notion.com/v1/oauth/token"
 
 	ErrOAuthGrant   = "internal server error caused by oauth grant content"
+	ErrMissingToken = "internal server error caused by missing oauth token"
 	ErrTokenRequest = "internal server error caused by oauth request to Notion API"
 	ErrTokenDecode  = "internal server error caused by decoding oauth token response"
 	ErrImportSTIX   = "internal server error caused by importing STIX data to Notion"

@@ -42,12 +42,12 @@ func (s Service) Connect(w http.ResponseWriter, r *http.Request, params api.Conn
 	var oauthResponse OAuthAccessToken
 	if err = json.NewDecoder(rsp.Body).Decode(&oauthResponse); err != nil {
 		s.logger.Error(err)
-		return api.ConnectJSON500Response(api.Error{Message: ErrTokenDecode, Code: 500})
+		return nil
 	}
 
 	if oauthResponse.AccessToken == "" {
 		s.logger.Error("No token received from Notion API")
-		return api.ConnectJSON500Response(api.Error{Message: ErrTokenDecode, Code: 500})
+		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
 	}
 
 	s.logger.Info("Token received from Notion API")
