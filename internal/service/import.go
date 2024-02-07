@@ -81,17 +81,18 @@ func (s Service) importSTIXToNotion(client *notion.Client) error {
 	log.Info("Creating notion pages (this might take a while)")
 
 	ctx := context.Background()
-	err := s.importAttackPatternsIntelToNotionDB(ctx, client, "")
+	parentPage := "257d3f4e70f246cbad438971f691ed2d"
+	err := s.importAttackPatternsIntelToNotionDB(ctx, client, parentPage)
 	if err != nil {
 		return err
 	}
 
-	err = s.importCampaignsIntelToNotionDB(ctx, client, "")
+	err = s.importCampaignsIntelToNotionDB(ctx, client, parentPage)
 	if err != nil {
 		return err
 	}
 
-	err = s.importMalwareIntelToNotionDB(ctx, client, "")
+	err = s.importMalwareIntelToNotionDB(ctx, client, parentPage)
 	if err != nil {
 		return err
 	}
