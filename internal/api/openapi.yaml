@@ -14,14 +14,14 @@ servers:
   - url: https://api.notion.com
     description: Notion API
 tags:
-  - name: Setup
+  - name: Connect
   - name: Health
 paths: 
-  /setup:
+  /connect:
     get:
-      summary: Setup the Notion STIX Integration
-      description: setup the Notion STIX Integration to access your Notion workspace
-      operationId: setup 
+      summary: Connect the Notion STIX Integration
+      description: Connect the Notion STIX Integration to access your Notion workspace
+      operationId: connect 
       parameters:
         - name: code
           in: query
@@ -30,7 +30,7 @@ paths:
             type: string
           description: The temporary oauth grant code 
       tags:
-        - Setup
+        - Connect
       responses:
         "200":
           description: OK

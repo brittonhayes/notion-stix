@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 
 	notionstix "github.com/brittonhayes/notion-stix"
@@ -24,21 +25,29 @@ type Service struct {
 
 	client *http.Client
 
-	redirectURL       string
+	redirectURI       string
 	oauthClientID     string
 	oauthClientSecret string
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository, redirectURL string, oauthClientID string, oauthClientSecret string) Service {
+func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string) Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
-	return Service{repo: repo, client: retryClient.StandardClient(), redirectURL: redirectURL, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
+	return Service{repo: repo, client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
 }
 
 func (s Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
 	resp := api.Health{Status: "ok"}
 	return api.GetHealthzJSON200Response(resp)
+}
+
+func (s Service) Hello(w http.ResponseWriter, r *http.Request) *api.Response {
+	url := fmt.Sprintf("https://api.notion.com/v1/oauth/authorize?owner=user&client_id=%s&redirect_uri=%s&response_type=code", s.oauthClientID, s.redirectURI)
+
+	_, _ = w.Write([]byte(url))
+
+	return &api.Response{}
 }

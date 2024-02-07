@@ -21,11 +21,9 @@ type Server struct {
 type Config struct {
 	Repository  notionstix.Repository
 	Service     api.ServerInterface
-	Addr        string
 	ServiceName string
 	Environment string
 	Port        int
-	Tracing     bool
 }
 
 // ListenAndServe starts the HTTP server and listens for incoming requests.
@@ -52,9 +50,8 @@ func New(ctx context.Context, config *Config) *Server {
 
 	api.Handler(config.Service, api.WithRouter(r))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("Welcome to the Notion STIX API"))
-	})
+	// r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	// })
 
 	port := config.Port
 	if port == 0 {

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"net/url"
 	"os"
 	"sort"
 
@@ -41,6 +42,11 @@ func main() {
 				EnvVars: []string{"NOTION_AUTH_URL"},
 			},
 			&cli.StringFlag{
+				Name:    "redirect-uri",
+				Usage:   "The redirect URI for the Notion OAuth integration",
+				EnvVars: []string{"REDIRECT_URI"},
+			},
+			&cli.StringFlag{
 				Name:    "client-id",
 				Aliases: []string{"i"},
 				Usage:   "The Notion OAuth client ID",
@@ -72,7 +78,7 @@ func main() {
 		Action: func(c *cli.Context) error {
 			config := &server.Config{
 				Repository:  repo,
-				Service:     service.New(repo, c.String("notion-auth-url"), c.String("client-id"), c.String("client-secret")),
+				Service:     service.New(repo, c.String("redirect-uri"), c.String("client-id"), c.String("client-secret")),
 				ServiceName: "stix",
 				Environment: "production",
 				Port:        c.Int("port"),
@@ -82,7 +88,7 @@ func main() {
 			return s.ListenAndServe()
 		},
 	}
-
+	url.QueryEscape("")
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 

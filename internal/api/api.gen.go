@@ -32,8 +32,8 @@ type Health struct {
 	Status string `json:"status"`
 }
 
-// SetupParams defines parameters for Setup.
-type SetupParams struct {
+// ConnectParams defines parameters for Connect.
+type ConnectParams struct {
 	// The temporary oauth grant code
 	Code string `json:"code"`
 }
@@ -79,6 +79,16 @@ func (resp *Response) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.Encode(resp.body)
 }
 
+// ConnectJSON500Response is a constructor method for a Connect response.
+// A *Response is returned with the configured status code and content type from the spec.
+func ConnectJSON500Response(body Error) *Response {
+	return &Response{
+		body:        body,
+		Code:        500,
+		contentType: "application/json",
+	}
+}
+
 // GetHealthzJSON200Response is a constructor method for a GetHealthz response.
 // A *Response is returned with the configured status code and content type from the spec.
 func GetHealthzJSON200Response(body Health) *Response {
@@ -99,24 +109,14 @@ func GetHealthzJSON404Response(body Error) *Response {
 	}
 }
 
-// SetupJSON500Response is a constructor method for a Setup response.
-// A *Response is returned with the configured status code and content type from the spec.
-func SetupJSON500Response(body Error) *Response {
-	return &Response{
-		body:        body,
-		Code:        500,
-		contentType: "application/json",
-	}
-}
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Connect the Notion STIX Integration
+	// (GET /connect)
+	Connect(w http.ResponseWriter, r *http.Request, params ConnectParams) *Response
 	// Get health status
 	// (GET /healthz)
 	GetHealthz(w http.ResponseWriter, r *http.Request) *Response
-	// Setup the Notion STIX Integration
-	// (GET /setup)
-	Setup(w http.ResponseWriter, r *http.Request, params SetupParams) *Response
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -125,12 +125,23 @@ type ServerInterfaceWrapper struct {
 	ErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
 }
 
-// GetHealthz operation middleware
-func (siw *ServerInterfaceWrapper) GetHealthz(w http.ResponseWriter, r *http.Request) {
+// Connect operation middleware
+func (siw *ServerInterfaceWrapper) Connect(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ConnectParams
+
+	// ------------- Required query parameter "code" -------------
+
+	if err := runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code); err != nil {
+		err = fmt.Errorf("invalid format for parameter code: %w", err)
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{err, "code"})
+		return
+	}
+
 	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := siw.Handler.GetHealthz(w, r)
+		resp := siw.Handler.Connect(w, r, params)
 		if resp != nil {
 			if resp.body != nil {
 				render.Render(w, r, resp)
@@ -143,23 +154,12 @@ func (siw *ServerInterfaceWrapper) GetHealthz(w http.ResponseWriter, r *http.Req
 	handler(w, r.WithContext(ctx))
 }
 
-// Setup operation middleware
-func (siw *ServerInterfaceWrapper) Setup(w http.ResponseWriter, r *http.Request) {
+// GetHealthz operation middleware
+func (siw *ServerInterfaceWrapper) GetHealthz(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params SetupParams
-
-	// ------------- Required query parameter "code" -------------
-
-	if err := runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code); err != nil {
-		err = fmt.Errorf("invalid format for parameter code: %w", err)
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{err, "code"})
-		return
-	}
-
 	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp := siw.Handler.Setup(w, r, params)
+		resp := siw.Handler.GetHealthz(w, r)
 		if resp != nil {
 			if resp.body != nil {
 				render.Render(w, r, resp)
@@ -287,8 +287,8 @@ func Handler(si ServerInterface, opts ...ServerOption) http.Handler {
 	}
 
 	r.Route(options.BaseURL, func(r chi.Router) {
+		r.Get("/connect", wrapper.Connect)
 		r.Get("/healthz", wrapper.GetHealthz)
-		r.Get("/setup", wrapper.Setup)
 	})
 	return r
 }
@@ -314,17 +314,17 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6xUQW/bPAz9KwK/72jYaZtdfOthW4NhW4H0MGDIQXNYW50tqRTdNAvy3wfKcpI2yXrp",
-	"jZafHsn3SG2gcp13Fi0HKDcQqgY7HcOPRI4kwGfd+RYlrNwSoZxOphl0GIKuEUr45lh9cr1dwjYDT84j",
-	"scGwx2/g3lGnGUowlq8uIQNeexw+sUaSizu+zfgzMBlbw3abAeFjbwiXUP4cOPf4xY7M/XrAioXrBnXL",
-	"jVC9LCew5j68nSLhjqkFaOy9G3qzrCuW0OouCWGcVfO72Q81k85IywFk0FMLJTTMPpRFsVqtchuxeXBS",
-	"7xJDRcZHcAl3jQnKBMUNqjOU6vp2lqsZK922bhXU2vWKnTIJgUpxQ6g5nrStqdFWqJaatZy4RJtDBq2p",
-	"0AY86OLr7O6oYufRBtdThbmjukiXQiHYbQZsuD0UgM3zKwGekMLQ3UU+ySdySTi1N1DCVX6RTyADr7mJ",
-	"7hRNNPCPxDVGiV9K9BlZDRiVvIp8Q7rZckDcJBLxNngnBQvT5WQy2oc2cmvvW1PFu8VDkATjIkj0P+E9",
-	"lPBfsd+UIq1JkQYtzsXLCr9/kR6nk+m75Rr28USqg/3bZhD6rtO0PiMS6zrIhKfCF3KjCMi9P6t1/PvP",
-	"YWSndFVhiHNII2zl6HfwusIjb+Yxn/hNukNGkpI2R1uAirHzjjStldM9N6ombVmlB8AI6rFHWkM2zm76",
-	"td9lph6zA4Ff7/3i9HCc8vLDO87NWS9FVrK6VXOkJyQ1Ag99nb9lyIHPg9SLmClEylNaJ57r29nR5mtv",
-	"xreqch2IYIl792AMObbZ7mDcisX2bwAAAP//4Os8yF8GAAA=",
+	"H4sIAAAAAAAC/7SUT2/bOBDFvwoxu0dBUhLvRbdg0SZC0TZAcigQ+MDSE4mpRDLDURzX8HcvSFH+Eztt",
+	"D+3JNPn0SP7eDNegbO+sQcMeqjV41WIv4/AdkaUwwBfZuw7DUNkFQjUrZxn06L1sECr4ZFm8t4NZwCYD",
+	"R9YhsUa/06/hwVIvGSrQhi/OIQNeORz/YoMUPtz6radFz6RNA5tNBoRPgyZcQHU/eu70862Z/fqIioPX",
+	"NcqO22B1eBzPkgf/6y2S7tg6CLV5sOPdDEvFYWhkn0Boa8TtXf1F1OFmJMMEZDBQBxW0zM5XRbFcLnMT",
+	"tbm34bwL9Iq0i+IK7lrthfaCWxRvWIrLmzoXNQvZdXbpxcoOgq3QSYFCcEsoOc50nW7QKBQLyTLM2GSb",
+	"QwadVmg87t3iY313dGLr0Hg7kMLcUlOkj3wRtJsMWHO3D4D1yysAz0h+vN1ZXuZl+Ch4Sqehgov8LC8h",
+	"Aye5jekUyhqDI9sG488hov/H9Z8iYiukUugjHZpkS0vfvJMqlFAojaitFzvPeA6SPTKSh+p+fZQOCsbe",
+	"WZK0ElYO3IqGpGGRClMH1dOAtIJsYpqWdjXGNGCWuu1UPc6D2DsbKIf187I8pvD5Q+D437gUyhFNZCWd",
+	"67SKNysefZCu97b6l/ABKvin2HV+kdq+GHs+lvnhVgEsGdmJW6RnJDEJM/BD30ta/V4oofNlE7Bucc+D",
+	"SdHGjv3+ZuBXyGLUiNScr+O7Qr5OJqfZ/RFA6WU5QWgMY1bO/n4Yew/uQQCnIE2408Hn0c7HEE9Vd8rt",
+	"8qY+egOk09OrpWwPoUST+fbpmDLdZNupCdh88yMAAP//b8os+WsGAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
