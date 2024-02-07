@@ -36,6 +36,9 @@ type Health struct {
 type ConnectParams struct {
 	// The temporary oauth grant code
 	Code string `json:"code"`
+
+	// The error message
+	Error *string `json:"error,omitempty"`
 }
 
 // Response is a common response struct for all the API calls.
@@ -150,6 +153,14 @@ func (siw *ServerInterfaceWrapper) Connect(w http.ResponseWriter, r *http.Reques
 	if err := runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code); err != nil {
 		err = fmt.Errorf("invalid format for parameter code: %w", err)
 		siw.ErrorHandlerFunc(w, r, &RequiredParamError{err, "code"})
+		return
+	}
+
+	// ------------- Optional query parameter "error" -------------
+
+	if err := runtime.BindQueryParameter("form", true, false, "error", r.URL.Query(), &params.Error); err != nil {
+		err = fmt.Errorf("invalid format for parameter error: %w", err)
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{err, "error"})
 		return
 	}
 
@@ -346,18 +357,18 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8yVy27rNhCGX4WYdilIPom70S4o2sQo2gZIFgUCLxh6IjGhSGY4iuMafvdidPE9SRct",
-	"cHYy+fMn55uL12BCE4NHzwnKNSRTY6O7z1+IAskHvusmOpRPExYI5XQyzaDBlHSFUMIfgdWvofUL2GQQ",
-	"KUQktph2+jU8BWo0QwnW8+UFZMCriP1PrJDk4NZvPW4mJusr2GwyIHxtLeECyofec6efb83C4zMaFq8b",
-	"1I5rsTp8TmLNbfr6ikF3ai1C659CH5tnbVg+vW4GEDZ4dXc/+0vNJDLSsgAZtOSghJo5prIolstl7jtt",
-	"noK8d4HJkI2duIT72iZlk+Ia1QeW6up2lqsZK+1cWCa1Cq3ioOygQKW4JtTcrThnK/QG1UKzlpUw2OaQ",
-	"gbMGfcK9KH6f3Z+8OET0KbRkMA9UFcOhVIh2kwFbdvsA2L4fAXhDSn103/JJPpFD4qmjhRIu82/5BDKI",
-	"musuO4VuuS56RIXRzj1q8yIbFXa8D3n9HLxHw5/y4qC0MZg6VDTKloFeUtRG6knqpNPOFjvP7lGkG2Sk",
-	"BOXD+iRVqBibGEjTSgV5tqpIe1ZDlVpRvbZIK8hGwMPWruCYWsyG1jtXnHMRpxgEuexfTCanFP78TaD+",
-	"1G9JbaLvWOkYnTVdZMVzEul676ofCZ+ghB+K3RgohhlQ9AOgq/nDqwQsee3UHdIbkhqFGaS2aTSt/l1S",
-	"ZAzoSrBucc/FpKi79v37w4RfI6teo4ZOPU7fNfLNYHKe3X8CaBgzZwj1yZhOpv9/Mvam70ECzkEacQ8P",
-	"H2k7Fz5lrVVFiCzFeBa0nP8SM+M7F9FpexT0cbF/rywPIJypWznQtcO5OTF0wNXt7GS06mjHPwMTGpBm",
-	"H9y3E3m8ZZNtl8bSm2/+CQAA///xGCywwgcAAA==",
+	"H4sIAAAAAAAC/8xVTY/cNgz9KwLbo2FPku3Ft6Bok0HRNkD2UCAYFIrMtZXIkkLRmZ0O5r8XtOX59G56",
+	"aIHeZOnpiXx8pPdgQh+DR88J6j0k02Gvx+VPRIFkgY+6jw5laUKDUN+t7groMSXdItTwW2D1cxh8A4cC",
+	"IoWIxBbTCb+Hh0C9ZqjBen71EgrgXcTpE1skuXjk28+Hicn6Fg6HAgi/DJawgfrDxHnCb45k4eMnNCxc",
+	"b1E77oTqMpzEmof07Scy7pZagNY/hCk3z9qwLL3usxA2ePX+fv2HWktmpGUDChjIQQ0dc0x1VW2329KP",
+	"2DIFibfBZMjGEVzDfWeTsklxh+oJSvX63bpUa1baubBNahcGxUHZjECluCPUPO44Z1v0BlWjWctOyLQl",
+	"FOCsQZ/wLItf1/c3EYeIPoWBDJaB2ipfSpVgDwWwZXcuANvHKwG+IqUpuxflqlzJJeHU0UINr8oX5QoK",
+	"iJq7sTqVHrirJokqo537qM1nOWhx1PtSrx+D92j4Wb04KG0MplEqmmHbQJ9T1Eb8JD4ZsevmxDkGRbpH",
+	"RkpQf9jflAoVYx8DadqpIGGrlrRnlV1qBfVlQNpBMQucj06GYxqwyK23aM6lZ1HaU81dUJy6FKZE/2zQ",
+	"W2yeiGG8Dc89upEIUwxSZzl/uVrdSv/7L1LJH6YjaQj0Y4F0jM6aUc7qUxLo/uyp7wkfoIbvqtPsqfLg",
+	"qaapMzba5VNSTfLaqfdIX5HUDCwgDX2vaffPnCCzR7dSy2ONN0JSdePM+OtJl71BVhNG5fFw7Zk3yG8z",
+	"ybJ2/4pAebYtKDQV4251998X42zkXxRgSaRZ7hz4rLZz4VmttWoJkcWMi0LL/W/KzPjIVXTaXiV9bfb/",
+	"q5YXIiz4Vi6M7bA0nHIHvH63vpnnOtr5D2RCD9Lsmf34G5hfkemTt2brbQ5/BwAA//8xQT5ENwgAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

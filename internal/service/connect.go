@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/dstotijn/go-notion"
@@ -17,6 +16,11 @@ import (
 // The access token is then used to redirect the client to the Notion URL.
 // If any errors occur during the process, appropriate error responses are returned.
 func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.ConnectParams) *api.Response {
+	if params.Error == nil {
+		s.logger.Error(params.Error)
+		return api.ConnectJSON500Response(api.Error{Message: ErrCancel, Code: 500})
+	}
+
 	b, err := json.Marshal(&OAuthGrant{
 		GrantType:   "authorization_code",
 		Code:        params.Code,
@@ -57,12 +61,8 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 
 	token := body.AccessToken
 
-	if token == "foo" {
+	if token == "" {
 		s.logger.Error("No token received from Notion API")
-		u, _ := url.Parse(s.redirectURI)
-		u.Query().Add("error", "missing token in request body")
-
-		http.Redirect(w, r, u.String(), http.StatusFound)
 		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
 	}
 

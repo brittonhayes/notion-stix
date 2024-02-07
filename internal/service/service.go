@@ -17,6 +17,7 @@ const (
 	NOTION_URL       = "https://www.notion.so/"
 	NOTION_OAUTH_URL = "https://api.notion.com/v1/oauth/token"
 
+	ErrCancel       = "internal server error caused by user cancellation"
 	ErrOAuthGrant   = "internal server error caused by oauth grant content"
 	ErrMissingToken = "internal server error caused by missing oauth token"
 	ErrTokenRequest = "internal server error caused by oauth request to Notion API"

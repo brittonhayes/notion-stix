@@ -49,6 +49,13 @@ paths:
           schema:
             type: string
           description: The temporary oauth grant code 
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The error message
+          example: "access_denied"
       tags:
         - Connect
       responses:
