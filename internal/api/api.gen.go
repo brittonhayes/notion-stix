@@ -109,6 +109,16 @@ func GetHealthzJSON404Response(body Error) *Response {
 	}
 }
 
+// GetHelloJSON404Response is a constructor method for a GetHello response.
+// A *Response is returned with the configured status code and content type from the spec.
+func GetHelloJSON404Response(body Error) *Response {
+	return &Response{
+		body:        body,
+		Code:        404,
+		contentType: "application/json",
+	}
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Connect the Notion STIX Integration
@@ -117,6 +127,9 @@ type ServerInterface interface {
 	// Get health status
 	// (GET /healthz)
 	GetHealthz(w http.ResponseWriter, r *http.Request) *Response
+	// Get a greeting
+	// (GET /hello)
+	GetHello(w http.ResponseWriter, r *http.Request) *Response
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -160,6 +173,24 @@ func (siw *ServerInterfaceWrapper) GetHealthz(w http.ResponseWriter, r *http.Req
 
 	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := siw.Handler.GetHealthz(w, r)
+		if resp != nil {
+			if resp.body != nil {
+				render.Render(w, r, resp)
+			} else {
+				w.WriteHeader(resp.Code)
+			}
+		}
+	})
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetHello operation middleware
+func (siw *ServerInterfaceWrapper) GetHello(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := siw.Handler.GetHello(w, r)
 		if resp != nil {
 			if resp.body != nil {
 				render.Render(w, r, resp)
@@ -289,6 +320,7 @@ func Handler(si ServerInterface, opts ...ServerOption) http.Handler {
 	r.Route(options.BaseURL, func(r chi.Router) {
 		r.Get("/connect", wrapper.Connect)
 		r.Get("/healthz", wrapper.GetHealthz)
+		r.Get("/hello", wrapper.GetHello)
 	})
 	return r
 }
@@ -314,17 +346,18 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7SUT2/bOBDFvwoxu0dBUhLvRbdg0SZC0TZAcigQ+MDSE4mpRDLDURzX8HcvSFH+Eztt",
-	"D+3JNPn0SP7eDNegbO+sQcMeqjV41WIv4/AdkaUwwBfZuw7DUNkFQjUrZxn06L1sECr4ZFm8t4NZwCYD",
-	"R9YhsUa/06/hwVIvGSrQhi/OIQNeORz/YoMUPtz6radFz6RNA5tNBoRPgyZcQHU/eu70862Z/fqIioPX",
-	"NcqO22B1eBzPkgf/6y2S7tg6CLV5sOPdDEvFYWhkn0Boa8TtXf1F1OFmJMMEZDBQBxW0zM5XRbFcLnMT",
-	"tbm34bwL9Iq0i+IK7lrthfaCWxRvWIrLmzoXNQvZdXbpxcoOgq3QSYFCcEsoOc50nW7QKBQLyTLM2GSb",
-	"QwadVmg87t3iY313dGLr0Hg7kMLcUlOkj3wRtJsMWHO3D4D1yysAz0h+vN1ZXuZl+Ch4Sqehgov8LC8h",
-	"Aye5jekUyhqDI9sG488hov/H9Z8iYiukUugjHZpkS0vfvJMqlFAojaitFzvPeA6SPTKSh+p+fZQOCsbe",
-	"WZK0ElYO3IqGpGGRClMH1dOAtIJsYpqWdjXGNGCWuu1UPc6D2DsbKIf187I8pvD5Q+D437gUyhFNZCWd",
-	"67SKNysefZCu97b6l/ABKvin2HV+kdq+GHs+lvnhVgEsGdmJW6RnJDEJM/BD30ta/V4oofNlE7Bucc+D",
-	"SdHGjv3+ZuBXyGLUiNScr+O7Qr5OJqfZ/RFA6WU5QWgMY1bO/n4Yew/uQQCnIE2408Hn0c7HEE9Vd8rt",
-	"8qY+egOk09OrpWwPoUST+fbpmDLdZNupCdh88yMAAP//b8os+WsGAAA=",
+	"H4sIAAAAAAAC/8yUTW/jNhCG/wox7VGQnMS96BYUbWIUbQMkhwKBDyw9kZhKJDMcxXEN//fFSJS/k+xh",
+	"F9iTZfLlS84zH2swvg3eoeMI5RqiqbHV/edvRJ7kA990GxqUT+MXCOV0Ms2gxRh1hVDCX57V775zC9hk",
+	"EMgHJLYYd/o1PHlqNUMJ1vHVJWTAq4DDX6yQ5ODWbz1uRibrKthsMiB86SzhAsrHwXOnn2/N/L/PaFi8",
+	"blE3XIvV4XMia+7i51ck3am1CK178kNsjrVh+XS6TSCsd+r+YfaPmklkpGUBMuiogRJq5hDLolgul7nr",
+	"tXn08t4FRkM29OISHmoblY2Ka1TvWKrru1muZqx00/hlVCvfKfbKJgUqxTWh5n6laWyFzqBaaNay4pNt",
+	"Dhk01qCLuBfFn7OHkxf7gC76jgzmnqoiHYqFaDcZsOVmHwDbtyMAr0hxiO4in+QTOSSeOlgo4Sq/yCeQ",
+	"QdBc99kpjHcOB7YV9j+HiH4d9j9ExF5pYzD2dGiULT39F4M2UkJSGr12tth59u8g3SIjRSgf1yfZQcXY",
+	"Bk+aVsrrjmtVkXasUmFaUb10SCvIRqZpa1djTB1mqdvO1eNcxDF4oSz7l5PJKYW//xCOvwxbUo7oelY6",
+	"hMaaPrLiOYp0vXfVz4RPUMJPxa7zi9T2xdDzfZkfXiVgyelG3SO9IqlRmEHs2lbT6uuSIp2vK8G6xT0X",
+	"k6LuO/b/dxN+g6wGjUrNeZy+G+TbZHKe3TcBlCbLGUJDMqaT6fdPxt7APUjAOUgj7vTwkXbT+A9Za1UR",
+	"IksxngUt5z/FzPjGRWi0PQr6uNh/VJYHEM7UrRzo2+HcnEgdcH03O5mmOthx/hvfgjR7ct8O4fGWTbZd",
+	"GktvvvkSAAD//9J4UFq1BwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

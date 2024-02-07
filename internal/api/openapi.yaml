@@ -17,6 +17,26 @@ tags:
   - name: Connect
   - name: Health
 paths: 
+  /hello:
+    get:
+      summary: Get a greeting
+      description: Get a greeting
+      operationId: getHello
+      tags:
+      - Connect
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /connect:
     get:
       summary: Connect the Notion STIX Integration
