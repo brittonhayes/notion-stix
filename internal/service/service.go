@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+
+	"github.com/charmbracelet/log"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -24,6 +27,8 @@ type Service struct {
 	repo   notionstix.Repository
 	source notionstix.StixSource
 
+	logger *log.Logger
+
 	client *http.Client
 
 	redirectURI       string
@@ -37,7 +42,7 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
-	return Service{repo: repo, client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
+	return Service{repo: repo, logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
 }
 
 func (s Service) GetHealthz(w http.ResponseWriter, r *http.Request) *api.Response {
