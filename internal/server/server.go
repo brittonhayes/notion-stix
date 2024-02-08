@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -44,11 +45,13 @@ func New(ctx context.Context, config *Config) *Server {
 	swagger.Servers = nil
 
 	r := chi.NewRouter()
+
+	allowedDomains := []string{"https://unpkg.com/htmx.org", "https://cdn.tailwindcss.com", "https://unpkg.com/feather-icons"}
 	secureMiddleware := secure.New(secure.Options{
 		AllowedHosts:          []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "script-src $NONCE",
+		ContentSecurityPolicy: "script-src 'self'" + strings.Join(allowedDomains, " "),
 	})
 
 	r.Use(middleware.Heartbeat("/healthz"))
