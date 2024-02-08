@@ -52,24 +52,44 @@
                 <!-- TODO add ajax request to import stix data -->
                 <!-- TODO dynamically render the words re-connect or connect based on cookie presence -->
                 <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
-                    <a class="block rounded-md font-semibold w-3/4 md:w-auto py-3 px-6 inset-0 md:border text-black bg-white hover:bg-[#dadada] focus:outline-none focus:ring active:bg-white"
-                        href="https://api.notion.com/v1/oauth/authorize?owner=user&client_id=080c1454-5a25-43af-b5ab-06162b1955d9&redirect_uri=https%3A%2F%2Fnotion-stix.up.railway.app%2Fauth%2Fnotion%2Fcallback&response_type=code"
-                        target="_blank">
-                        <span class="flex justify-evenly items-center">
-                            <span class="pr-2">Connect to Notion</span>
-                            <i data-feather="external-link"></i>
-                        </span>
-                    </a>
                     {{ if .Authenticated }}
                     <button
-                        class="block rounded-md font-semibold w-3/4 md:w-auto py-3 px-6 inset-0 md:border text-white hover:text-black hover:bg-[#dadada] focus:outline-none focus:ring active:bg-white"
+                        class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
                         hx-get="/api/import">
-                        <span class="flex flex-row justify-evenly ">
-                            <span>Run</span>
+                        <span class="flex">
+                            <span class="pr-2">Upload MITRE ATT&CK</span>
+                            <i data-feather="arrow-up-circle"></i>
                         </span>
                     </button>
+                    <a class="flex justify-around rounded-md text-white/70 hover:text-white hover:border-white bg-[#080808] font-semibold w-3/4 md:w-auto py-3 px-4 inset-0 border"
+                        href="https://api.notion.com/v1/oauth/authorize?owner=user&client_id=080c1454-5a25-43af-b5ab-06162b1955d9&redirect_uri=https%3A%2F%2Fnotion-stix.up.railway.app%2Fauth%2Fnotion%2Fcallback&response_type=code"
+                        target="_blank">
+                        <span class="flex">
+                            <span>Reset</span>
+                            <!-- <i data-feather="refresh-cw"></i> -->
+                        </span>
+                    </a>
+                    {{ else }}
+                    <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+                        href="https://api.notion.com/v1/oauth/authorize?owner=user&client_id=080c1454-5a25-43af-b5ab-06162b1955d9&redirect_uri=https%3A%2F%2Fnotion-stix.up.railway.app%2Fauth%2Fnotion%2Fcallback&response_type=code"
+                        target="_blank">
+                        <span class="flex">
+                            <span class="pr-3">Connect to Notion</span>
+                            <i class="text-black/80" data-feather="external-link"></i>
+                        </span>
+                    </a>
                     {{ end }}
                 </div>
+
+                {{ if .Authenticated}}
+                <div class="flex flex-row justify-center">
+                    <p class="text-white px-1">
+                        <span class="font-bold">Status:</span>
+                        Connected
+                    </p>
+                    <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
+                </div>
+                {{ end }}
 
                 <div class="flex flex-row justify-center">
                     <p class="block w-full mt-24 px-6 sm:w-2/3 italic md:text-lg text-md text-white/25 break-words">
