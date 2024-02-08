@@ -77,20 +77,9 @@ func New(ctx context.Context, config *Config) *Server {
 	}
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		botCookie, err := cookies.Read(r, "bot_id")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		pageCookie, err := cookies.Read(r, "page_id")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		botCookie, _ := cookies.Read(r, "bot_id")
 		tmpl.ExecuteTemplate(w, "home", HomeData{
-			Authenticated: botCookie != "" && pageCookie != "",
+			Authenticated: botCookie != "",
 		})
 	})
 

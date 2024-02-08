@@ -1,43 +1,7 @@
 {{ define "home" }}
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Primary Meta Tags -->
-    <title>Notion STIX</title>
-    <meta name="title" content="Notion STIX" />
-    <meta name="description" content="Notion threat intelligence integration" />
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://notion-stix.up.railway.app" />
-    <meta property="og:title" content="Notion STIX" />
-    <meta property="og:description" content="Notion threat intelligence integration" />
-    <meta property="og:image"
-        content="https://repository-images.githubusercontent.com/753885390/10d55d07-4ad9-4f9a-8acc-be58ac35d200" />
-    <meta name="theme-color" content="#111111">
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://notion-stix.up.railway.app" />
-    <meta property="twitter:title" content="Notion STIX" />
-    <meta property="twitter:image"
-        content="https://repository-images.githubusercontent.com/753885390/10d55d07-4ad9-4f9a-8acc-be58ac35d200" />
-    <meta property="twitter:description" content="Notion threat intelligence integration" />
-    <script src="https://unpkg.com/feather-icons"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"
-        integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
-        crossorigin="anonymous"></script>
-    <style>
-        body {
-            background: #111111;
-            background-image: radial-gradient(#242121 5%, transparent 0);
-            background-size: 35px 35px;
-        }
-    </style>
-</head>
+{{ template "head" }}
 
 <body>
     <section class="h-screen">
@@ -66,7 +30,8 @@
                             <span>Reset</span>
                         </span>
                     </a>
-                    {{ else }}
+                    {{ end }}
+                    {{ if not .Authenticated }}
                     <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
                         href="https://api.notion.com/v1/oauth/authorize?owner=user&client_id=080c1454-5a25-43af-b5ab-06162b1955d9&redirect_uri=https%3A%2F%2Fnotion-stix.up.railway.app%2Fauth%2Fnotion%2Fcallback&response_type=code"
                         target="_blank">
@@ -77,49 +42,19 @@
                     </a>
                     {{ end }}
                 </div>
-
                 {{ if .Authenticated }}
                 <div class="flex flex-row justify-center">
                     <p class="text-white px-1">
-                        <span class="font-bold">Status:</span>
-                        Connected
+                        <span class="font-bold">Status:</span>&nbsp;Connected
                     </p>
                     <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
                 </div>
                 {{ end }}
-
-                <div class="flex flex-row justify-center">
-                    <p class="block w-full mt-24 px-6 sm:w-2/3 italic md:text-lg text-md text-white/25 break-words">
-                        *The Notion STIX integration is not affiliated with Notion Labs in any way and is a community
-                        project.
-                    </p>
-                </div>
-                <div class="flex flex-row justify-center items-center mt-5">
-                    <a class="block rounded-xl w-3/4 md:w-auto px-3 inset-0  text-white hover:underline focus:outline-none focus:ring active:bg-white"
-                        href="https://github.com/brittonhayes/notion-stix/blob/main/PRIVACY_POLICY.md" target="_blank">
-                        <span class="flex justify-center ">
-                            <p>Privacy Policy</p>
-                        </span>
-                    </a>
-                    <a class="block rounded-xl w-3/4 md:w-auto px-3 inset-0  text-white hover:underline focus:outline-none focus:ring active:bg-white"
-                        href="https://github.com/brittonhayes/notion-stix/blob/main/TERMS_OF_USE.md" target="_blank">
-                        <span class="flex justify-center ">
-                            <p>Terms of Use</p>
-                        </span>
-                    </a>
-                    <a class="block rounded-xl w-3/4 md:w-auto px-3 inset-0  text-white hover:underline focus:outline-none focus:ring active:bg-white"
-                        href="https://github.com/brittonhayes/notion-stix" target="_blank">
-                        <span class="flex justify-center ">
-                            <p>GitHub</p>
-                        </span>
-                    </a>
-                </div>
+                {{ template "footer" }}
             </div>
         </div>
     </section>
-    <script type="application/javascript">
-        feather.replace();
-    </script>
+    {{ template "scripts" }}
 </body>
 
 </html>
