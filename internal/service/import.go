@@ -10,6 +10,30 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
+func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
+	botID, err := cookies.Read(r, "bot_id")
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
+	}
+
+	pageID, err := cookies.Read(r, "page_id")
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
+	}
+
+	client := notion.NewClient(s.tokens[botID], notion.WithHTTPClient(s.client))
+
+	err = s.importSTIXToNotion(client, pageID)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})
+	}
+
+	http.Redirect(w, r, NOTION_URL, http.StatusFound)
+
+	return nil
+}
+
 func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
 	limiter := time.Tick(600 * time.Millisecond)
 
@@ -87,30 +111,6 @@ func (s *Service) importSTIXToNotion(client *notion.Client, parentPageID string)
 	if err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
-	botID, err := cookies.Read(r, "bot_id")
-	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
-	}
-
-	pageID, err := cookies.Read(r, "page_id")
-	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
-	}
-
-	client := notion.NewClient(s.tokens[botID], notion.WithHTTPClient(s.client))
-
-	err = s.importSTIXToNotion(client, pageID)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})
-	}
-
-	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
 	return nil
 }

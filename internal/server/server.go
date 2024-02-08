@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"text/template"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
+	"github.com/brittonhayes/notion-stix/internal/cookies"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/unrolled/secure"
@@ -67,8 +69,20 @@ func New(ctx context.Context, config *Config) *Server {
 	r.Use(middleware.Logger)
 
 	api.Handler(config.Service, api.WithRouter(r))
+
+	tmpl := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/src/*.html"))
+
+	type HomeData struct {
+		Authenticated bool
+	}
+
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(notionstix.HTML_HOME)
+		botCookie, _ := cookies.Read(r, "bot_id")
+		pageCookie, _ := cookies.Read(r, "page_id")
+
+		tmpl.ExecuteTemplate(w, "home", HomeData{
+			Authenticated: botCookie != "" && pageCookie != "",
+		})
 	})
 
 	port := config.Port
