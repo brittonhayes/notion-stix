@@ -45,13 +45,11 @@ func New(ctx context.Context, config *Config) *Server {
 
 	r := chi.NewRouter()
 	secureMiddleware := secure.New(secure.Options{
-		// AllowedHosts:          []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
-		HostsProxyHeaders:     []string{"X-Forwarded-Host"},
-		SSLRedirect:           true,
-		FrameDeny:             true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "script-src $NONCE",
+		AllowedHosts:       []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
+		SSLRedirect:        true,
+		FrameDeny:          true,
+		ContentTypeNosniff: true,
+		BrowserXssFilter:   true,
 	})
 
 	r.Use(middleware.Heartbeat("/healthz"))
