@@ -12,6 +12,7 @@ var (
 )
 
 // TODO add support for Confidential (encrypted) and tamper-proof cookies using AES-GCM
+// https://www.alexedwards.net/blog/working-with-cookies-in-go
 
 func Write(w http.ResponseWriter, cookie http.Cookie) error {
 	// Encode the cookie value using base64.

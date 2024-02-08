@@ -35,8 +35,7 @@ type Service struct {
 	oauthClientID     string
 	oauthClientSecret string
 
-	// FIXME this is a super temporary solution to store the access tokens
-	// in memory
+	// FIXME consider replacing in-memory map with persistent token storage
 	tokens map[string]string
 }
 

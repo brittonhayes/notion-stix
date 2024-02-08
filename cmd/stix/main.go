@@ -18,8 +18,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-// TODO interact with STIX data from cli with no Notion integration
-
 func main() {
 
 	var (
