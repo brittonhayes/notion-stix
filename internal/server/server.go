@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/unrolled/secure"
+	"github.com/unrolled/secure/cspbuilder"
 )
 
 // Server represents an HTTP server.
@@ -46,12 +46,18 @@ func New(ctx context.Context, config *Config) *Server {
 
 	r := chi.NewRouter()
 
-	allowedDomains := []string{"https://unpkg.com/htmx.org", "https://cdn.tailwindcss.com", "https://unpkg.com/feather-icons"}
+	csp := cspbuilder.Builder{
+		Directives: map[string][]string{
+			cspbuilder.DefaultSrc: {"self"},
+			cspbuilder.StyleSrc:   {"self", "https://cdn.tailwindcss.com"},
+			cspbuilder.ScriptSrc:  {"self", "https://unpkg.com", "https://cdn.tailwindcss.com"},
+		},
+	}
 	secureMiddleware := secure.New(secure.Options{
 		AllowedHosts:          []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "script-src 'self'" + strings.Join(allowedDomains, " "),
+		ContentSecurityPolicy: csp.MustBuild(),
 	})
 
 	r.Use(middleware.Heartbeat("/healthz"))
