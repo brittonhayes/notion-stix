@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"net/http"
 	"time"
 
+	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/dstotijn/go-notion"
 )
 
@@ -84,6 +86,30 @@ func (s *Service) importSTIXToNotion(client *notion.Client, parentPageID string)
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
+	botID, err := r.Cookie("bot_id")
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: "missing bot_id cookie", Code: 500})
+	}
+
+	pageID, err := r.Cookie("page_id")
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: "missing page_id cookie", Code: 500})
+	}
+
+	client := notion.NewClient(s.tokens[botID.Value], notion.WithHTTPClient(s.client))
+
+	err = s.importSTIXToNotion(client, pageID.Value)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: "failed to import STIX data to Notion", Code: 500})
+	}
+
+	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/unrolled/secure"
 )
 
 // Server represents an HTTP server.
@@ -43,9 +44,17 @@ func New(ctx context.Context, config *Config) *Server {
 	swagger.Servers = nil
 
 	r := chi.NewRouter()
+	secureMiddleware := secure.New(secure.Options{
+		AllowedHosts:          []string{"notion-stix.up.railway.app", "www.notion.so"},
+		HostsProxyHeaders:     []string{"X-Forwarded-Host"},
+		SSLRedirect:           true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "script-src $NONCE",
+	})
 
-	// TODO set secure headers for cookies
-
+	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Heartbeat("/healthz"))
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RedirectSlashes)

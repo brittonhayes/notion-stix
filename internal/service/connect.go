@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
-	"github.com/dstotijn/go-notion"
 )
 
 // Connect handles the connection request from the client.
@@ -76,30 +75,20 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 
 	s.logger.Info("Starting notion import for bot", "bot_id", body.BotID)
 
-	//FIXME this is a temporary approach to start a goroutine for the import
-	go s.startNotionImport(body.BotID, body.DuplicatedTemplateID)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "bot_id",
+		Value:    body.BotID,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "page_id",
+		Value:    body.DuplicatedTemplateID,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
 	return nil
-}
-
-func (s *Service) startNotionImport(botID string, parentPageID string) {
-	// Retrieve the token from storage
-	token, exists := s.tokens[botID]
-	if !exists {
-		s.logger.Error("Token not found for botID:", botID)
-		return
-	}
-
-	// Create a new Notion client with the token
-	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
-
-	// Perform the import operation
-	err := s.importSTIXToNotion(client, parentPageID)
-	if err != nil {
-		s.logger.Error(err)
-	} else {
-		s.logger.Info("STIX import to Notion completed successfully")
-	}
 }

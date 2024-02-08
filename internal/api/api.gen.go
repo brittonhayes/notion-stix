@@ -77,6 +77,16 @@ func (resp *Response) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.Encode(resp.body)
 }
 
+// ImportSTIXJSON500Response is a constructor method for a ImportSTIX response.
+// A *Response is returned with the configured status code and content type from the spec.
+func ImportSTIXJSON500Response(body Error) *Response {
+	return &Response{
+		body:        body,
+		Code:        500,
+		contentType: "application/json",
+	}
+}
+
 // ConnectJSON500Response is a constructor method for a Connect response.
 // A *Response is returned with the configured status code and content type from the spec.
 func ConnectJSON500Response(body Error) *Response {
@@ -89,6 +99,9 @@ func ConnectJSON500Response(body Error) *Response {
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Import STIX data into Notion
+	// (GET /api/import)
+	ImportSTIX(w http.ResponseWriter, r *http.Request) *Response
 	// Connect the Notion STIX Integration
 	// (GET /auth/notion/callback)
 	Connect(w http.ResponseWriter, r *http.Request, params ConnectParams) *Response
@@ -98,6 +111,24 @@ type ServerInterface interface {
 type ServerInterfaceWrapper struct {
 	Handler          ServerInterface
 	ErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
+
+// ImportSTIX operation middleware
+func (siw *ServerInterfaceWrapper) ImportSTIX(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := siw.Handler.ImportSTIX(w, r)
+		if resp != nil {
+			if resp.body != nil {
+				render.Render(w, r, resp)
+			} else {
+				w.WriteHeader(resp.Code)
+			}
+		}
+	})
+
+	handler(w, r.WithContext(ctx))
 }
 
 // Connect operation middleware
@@ -252,6 +283,7 @@ func Handler(si ServerInterface, opts ...ServerOption) http.Handler {
 	}
 
 	r.Route(options.BaseURL, func(r chi.Router) {
+		r.Get("/api/import", wrapper.ImportSTIX)
 		r.Get("/auth/notion/callback", wrapper.Connect)
 	})
 	return r
@@ -278,16 +310,17 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/4xUXU/cOhD9K9bc+xgly8d9yRu6atWoaosED5XQqjLOkBgS24wnLKtV/ns1TrILXUB9",
-	"c+wzZybn+HgHxvfBO3QcodxBNC32Oi0/EXmSBT7rPnQoS+NrhPJ8dZ5BjzHqBqGE757VZz+4GsYMAvmA",
-	"xBbjAb+DO0+9ZijBOj47hQx4G3D6xAZJCvd8u+UwMlnXwDhmQPg4WMIaypuJ84Bf78n87T0ahlEKrLvz",
-	"0wCOtWFZOt3P01rv1NV19VNV0p60bEAGA3VQQsscYlkUm80mdwmbRy8D1hgN2ZDAJVy3NiobFbeo3qFU",
-	"F5dVripWuuv8JqqtHxR7ZWcEKsUtoea003W2QWdQ1Zq17PiZNocMOmvQRXzxF9+q66OJfUAX/UAGc09N",
-	"MRfFQrBjBmy5eykA2+c/BHhCitPfneSrfCVFwqmDhRLO8pN8BRkEzW3yttADt8UkUWF0191q8yAHDSa9",
-	"X+v1v3cODX+oF3uljcGYpKIFtvH0EIM2YrrcrYSt6gNnGop0j4wUobzZHVmFirEPnjRtlZexVUPasZqv",
-	"khXU44C0hWwReD6a8vDmpXyrDUpm1HI1s0N0YPqxXzU6i/U7PVP1h03XEoUYvPgq56er1bHUP76Kc/9N",
-	"RxIAdMkQHUJnTZKvuI8C3b1o9S/hHZTwT3F4EIr5NSimpyAF63UrcY+c7tQV0hOSWoAZxKHvNW3/znl5",
-	"EHQj3u09XaduMdG+ZerMdHFZHeVAB7sk1/geRLSZfR+fpYu4OG99Qd1xC+N6/B0AAP//yGZS2xQFAAA=",
+	"H4sIAAAAAAAC/9RUTW/bMAz9KwK3o2enH7v4NgwbFgz7ANrDgCEYWJm11dqSStFNg8D/fZBsJ1nTdrvu",
+	"FIV6fCQfn7UF7TrvLFkJUG4h6IY6TMcPzI7jgR6w8y3Fo3YVQXm+OM+goxCwJijhqxP10fW2giEDz84T",
+	"i6Gwx2/h2nGHAiUYK2enkIFsPI1/qSaOiTu+7XwZhI2tYRgyYLrrDVMF5c+Rc49f7cjc1Q1pgSEmGHvt",
+	"xgasoJZ4tNhN3Rpn1cXl8odaxvKMMQAZ9NxCCY2ID2VRrNfr3CZsHlxssKKg2fgELuGyMUGZoKQh9Qyl",
+	"evd9maulKGxbtw5q43olTpkJQUpJw4SSIm1rarKaVIWCMeIm2hwyaI0mG+hgii/Ly6OOnScbXM+acsd1",
+	"MSWFImKHDMRIeyiAmIdHAtwTh3G6k3yRL2JS5ERvoISz/CRfQAYepUm7LdCbwnTecZK3pvTzp0rLdD0q",
+	"83gwSOxj8WW1A0csxI0H72L7kfR0sTjm/vY5Nvh2vIp7Jps6QO9boxNtcRMidLZ1PL1muoYSXhV73xeT",
+	"6YvR8ck/j8awQmyxVRfE98RqBmYQ+q5D3vx9VME6RPeOMFjF5AJ7aYrRZIXGtr1Cffuslu+dtaTlRceJ",
+	"U6g1hWQ2nmFrx7fBo6YjySfOtFbGjoQ4drk9Mjspodg58ka52LaqGa2o6WM0EXXXE28gmy06Xe2lP/qs",
+	"nypDUVo1f9zZ/vGBcbBfFVlD1TM1U/aLRVf/obX+YfMHDpt3ukrVQqJ9aqkHTEdPyejJN0HMQ977nNG0",
+	"a9zk6D1EBadSu9doLhlXOoU+EbbSHEYm5w+r4XcAAAD//1CynzR1BgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

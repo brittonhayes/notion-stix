@@ -11,12 +11,29 @@ info:
     url: https://opensource.org/licenses/MIT
 security: []
 servers:
-  - url: https://api.notion.com
-    description: Notion API
+  - url: https://notion-stix.up.railway.app
+    description: Notion STIX
 tags:
   - name: Connect
   - name: Health
+  - name: Import
 paths: 
+  /api/import:
+    get:
+      summary: Import STIX data into Notion
+      description: Import STIX data into Notion
+      operationId: importSTIX
+      tags:
+        - Import
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /auth/notion/callback:
     get:
       summary: Connect the Notion STIX Integration
