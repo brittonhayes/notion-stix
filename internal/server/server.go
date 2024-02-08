@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/unrolled/secure"
-	"github.com/unrolled/secure/cspbuilder"
 )
 
 // Server represents an HTTP server.
@@ -46,18 +45,19 @@ func New(ctx context.Context, config *Config) *Server {
 
 	r := chi.NewRouter()
 
-	csp := cspbuilder.Builder{
-		Directives: map[string][]string{
-			cspbuilder.DefaultSrc: {"self"},
-			cspbuilder.StyleSrc:   {"self", "https://cdn.tailwindcss.com", "https://unpkg.com"},
-			cspbuilder.ScriptSrc:  {"self", "https://cdn.tailwindcss.com", "https://unpkg.com"},
-		},
-	}
+	// FIXME content security policy needs to be dialed in
+	// csp := cspbuilder.Builder{
+	// 	Directives: map[string][]string{
+	// 		cspbuilder.DefaultSrc: {"self"},
+	// 		cspbuilder.StyleSrc:   {"self", "https://cdn.tailwindcss.com", "https://unpkg.com/"},
+	// 		cspbuilder.ScriptSrc:  {"self", "https://cdn.tailwindcss.com", "https://unpkg.com"},
+	// 	},
+	// }
 	secureMiddleware := secure.New(secure.Options{
-		AllowedHosts:          []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		ContentSecurityPolicy: csp.MustBuild(),
+		AllowedHosts:       []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
+		ContentTypeNosniff: true,
+		BrowserXssFilter:   true,
+		// ContentSecurityPolicy: csp.MustBuild(),
 	})
 
 	r.Use(middleware.Heartbeat("/healthz"))
