@@ -49,8 +49,6 @@
                 <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">
                     Integrate Threat intelligence into your Notion workspace
                 </p>
-                <!-- TODO add ajax request to import stix data -->
-                <!-- TODO dynamically render the words re-connect or connect based on cookie presence -->
                 <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
                     {{ if .Authenticated }}
                     <button
@@ -66,7 +64,6 @@
                         target="_blank">
                         <span class="flex">
                             <span>Reset</span>
-                            <!-- <i data-feather="refresh-cw"></i> -->
                         </span>
                     </a>
                     {{ else }}
@@ -81,7 +78,7 @@
                     {{ end }}
                 </div>
 
-                {{ if .Authenticated}}
+                {{ if .Authenticated }}
                 <div class="flex flex-row justify-center">
                     <p class="text-white px-1">
                         <span class="font-bold">Status:</span>
@@ -120,8 +117,6 @@
             </div>
         </div>
     </section>
-
-    </div>
     <script type="application/javascript">
         feather.replace();
     </script>
