@@ -45,7 +45,7 @@ func New(ctx context.Context, config *Config) *Server {
 
 	r := chi.NewRouter()
 	secureMiddleware := secure.New(secure.Options{
-		AllowedHosts:          []string{"notion-stix.up.railway.app", "www.notion.so"},
+		AllowedHosts:          []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so"},
 		HostsProxyHeaders:     []string{"X-Forwarded-Host"},
 		SSLRedirect:           true,
 		FrameDeny:             true,
