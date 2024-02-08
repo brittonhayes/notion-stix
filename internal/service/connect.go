@@ -86,7 +86,6 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		Value:    body.BotID,
 		Secure:   true,
 		HttpOnly: true,
-		Path:     "/api/import",
 		SameSite: http.SameSiteLaxMode,
 	}
 	pageCookie := http.Cookie{
@@ -94,17 +93,16 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		Value:    body.DuplicatedTemplateID,
 		Secure:   true,
 		HttpOnly: true,
-		Path:     "/api/import",
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	err = cookies.Write(w, botCookie)
+	err = cookies.WriteEncrypted(w, botCookie, []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
 	}
 
-	err = cookies.Write(w, pageCookie)
+	err = cookies.WriteEncrypted(w, pageCookie, []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})

@@ -14,10 +14,24 @@ servers:
   - url: https://notion-stix.up.railway.app
     description: Notion STIX
 tags:
+  - name: Web
   - name: Connect
-  - name: Health
   - name: Import
 paths: 
+  /:
+    get:
+      summary: Get homepage
+      description: Serve the website homepage
+      operationId: getHomePage
+      tags:
+        - Web
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                type: string
   /api/import:
     get:
       summary: Import STIX data into Notion

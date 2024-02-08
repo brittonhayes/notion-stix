@@ -34,16 +34,26 @@ type Service struct {
 	redirectURI       string
 	oauthClientID     string
 	oauthClientSecret string
+	cookieSecret      string
 
 	// FIXME consider replacing in-memory map with persistent token storage
 	tokens map[string]string
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string) *Service {
+func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string) *Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
-	return &Service{repo: repo, tokens: make(map[string]string), logger: log.New(os.Stdout), client: retryClient.StandardClient(), redirectURI: redirectURI, oauthClientID: oauthClientID, oauthClientSecret: oauthClientSecret}
+	return &Service{
+		repo:              repo,
+		tokens:            make(map[string]string),
+		logger:            log.New(os.Stdout),
+		client:            retryClient.StandardClient(),
+		redirectURI:       redirectURI,
+		oauthClientID:     oauthClientID,
+		oauthClientSecret: oauthClientSecret,
+		cookieSecret:      cookieSecret,
+	}
 }

@@ -4,12 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"text/template"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
-	"github.com/brittonhayes/notion-stix/internal/cookies"
-	"github.com/charmbracelet/log"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/unrolled/secure"
@@ -70,23 +67,6 @@ func New(ctx context.Context, config *Config) *Server {
 	r.Use(middleware.Logger)
 
 	api.Handler(config.Service, api.WithRouter(r))
-
-	tmpl := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/*.html"))
-
-	type HomeData struct {
-		Authenticated  bool
-		IntegrationURL string
-	}
-
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		botCookie, _ := cookies.Read(r, "bot_id")
-		log.Info("Bot Cookie", botCookie != "")
-
-		tmpl.ExecuteTemplate(w, "home", HomeData{
-			Authenticated:  botCookie != "",
-			IntegrationURL: "https://api.notion.com/v1/oauth/authorize?owner=user&client_id=080c1454-5a25-43af-b5ab-06162b1955d9&redirect_uri=https%3A%2F%2Fnotion-stix.up.railway.app%2Fauth%2Fnotion%2Fcallback&response_type=code",
-		})
-	})
 
 	port := config.Port
 	if port == 0 {

@@ -57,6 +57,11 @@ func main() {
 				Usage:   "The Notion OAuth client secret",
 				EnvVars: []string{"OAUTH_CLIENT_SECRET"},
 			},
+			&cli.StringFlag{
+				Name:    "cookie-secret",
+				Usage:   "The secret key used to encrypt cookies",
+				EnvVars: []string{"COOKIE_SECRET"},
+			},
 			&cli.IntFlag{
 				Name:    "port",
 				Aliases: []string{"p"},
@@ -77,7 +82,7 @@ func main() {
 		Action: func(c *cli.Context) error {
 			config := &server.Config{
 				Repository:  repo,
-				Service:     service.New(repo, c.String("redirect-uri"), c.String("client-id"), c.String("client-secret")),
+				Service:     service.New(repo, c.String("redirect-uri"), c.String("client-id"), c.String("client-secret"), c.String("cookie-secret")),
 				ServiceName: "stix",
 				Environment: "production",
 				Port:        c.Int("port"),
