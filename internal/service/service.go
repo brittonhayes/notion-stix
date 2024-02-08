@@ -36,7 +36,9 @@ type Service struct {
 	oauthClientSecret string
 	cookieSecret      string
 
-	// FIXME consider replacing in-memory map with persistent token storage
+	// TODO consider replacing in-memory map with persistent token storage
+	// Likely replace this with badger on-disk kv store and use a railway volume for persistence
+	// https://dgraph.io/docs/badger/get-started/#using-keyvalue-pairs
 	tokens map[string]string
 }
 

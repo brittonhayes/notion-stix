@@ -45,15 +45,10 @@ Congratulations! 🎉 Your Notion workspace is now empowered with MITRE threat i
 <img src='.github/assets/attack-patterns.png' width='400'>
 <img src='.github/assets/campaigns.png' width='400'>
 
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for more details on how you can become a part of this project.
-
 ## 📜 License
 
 **notion-stix** is made available under the [MIT License](LICENSE).
 
 ## 📖 Code of Conduct
 
-Our community thrives on respect and kindness. Before contributing or participating, please read our [Code of Conduct](CODE_OF_CONDUCT.md).
+Our community thrives on respect and kindness. Before contributing or participating, please read our [Code of Conduct](./docs/CODE_OF_CONDUCT.md).

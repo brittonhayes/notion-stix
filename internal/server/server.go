@@ -45,7 +45,7 @@ func New(ctx context.Context, config *Config) *Server {
 
 	r := chi.NewRouter()
 
-	// FIXME content security policy needs to be dialed in
+	// TODO content security policy needs to be dialed in
 	// csp := cspbuilder.Builder{
 	// 	Directives: map[string][]string{
 	// 		cspbuilder.DefaultSrc: {"self"},

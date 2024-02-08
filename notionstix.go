@@ -1,11 +1,31 @@
+// Package stix is the parent package to the Notion STIX integration, API, and CLI.
+//
+//go:generate goapi-gen -generate types,server,spec -package api --out internal/api/api.gen.go ./internal/api/openapi.yaml
 package notionstix
 
 import (
 	"context"
+	"embed"
 
 	"github.com/TcM1911/stix2"
 	"github.com/dstotijn/go-notion"
 )
+
+//go:embed hack/*.json
+var FS embed.FS
+
+//go:embed web/*.html
+var TEMPLATES embed.FS
+
+type StixSource int
+
+const (
+	MitreEnterpriseAttack StixSource = iota + 1
+)
+
+func (s StixSource) String() string {
+	return [...]string{"hack/enterprise-attack-14.1.json"}[s-1]
+}
 
 // Repository defines the interface for interacting with the Notion database.
 type Repository interface {
