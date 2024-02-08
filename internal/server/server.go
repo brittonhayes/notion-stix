@@ -70,7 +70,7 @@ func New(ctx context.Context, config *Config) *Server {
 
 	api.Handler(config.Service, api.WithRouter(r))
 
-	tmpl := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/src/*.html"))
+	tmpl := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/*.html"))
 
 	type HomeData struct {
 		Authenticated bool
