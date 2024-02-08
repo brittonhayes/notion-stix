@@ -13,6 +13,14 @@
                 <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">
                     Integrate Threat intelligence into your Notion workspace
                 </p>
+                {{ if .Authenticated }}
+                <div class="mb-4 flex flex-row justify-center">
+                    <p class="text-white px-1">
+                        <span class="font-bold">Status:</span>&nbsp;Connected
+                    </p>
+                    <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
+                </div>
+                {{ end }}
                 <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
                     {{ if .Authenticated }}
                     <button
@@ -23,7 +31,7 @@
                             <i data-feather="arrow-up-circle"></i>
                         </span>
                     </button>
-                    <a class="flex justify-around rounded-md text-white/70 hover:text-white hover:border-white bg-[#080808] font-semibold w-3/4 md:w-auto py-3 px-4 inset-0 border"
+                    <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
                         href="{{.IntegrationURL}}"
                         target="_blank">
                         <span class="flex">
@@ -42,14 +50,6 @@
                     </a>
                     {{ end }}
                 </div>
-                {{ if .Authenticated }}
-                <div class="flex flex-row justify-center">
-                    <p class="text-white px-1">
-                        <span class="font-bold">Status:</span>&nbsp;Connected
-                    </p>
-                    <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
-                </div>
-                {{ end }}
                 {{ template "footer" }}
             </div>
         </div>
