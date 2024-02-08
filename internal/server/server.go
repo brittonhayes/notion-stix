@@ -49,8 +49,8 @@ func New(ctx context.Context, config *Config) *Server {
 	csp := cspbuilder.Builder{
 		Directives: map[string][]string{
 			cspbuilder.DefaultSrc: {"self"},
-			cspbuilder.StyleSrc:   {"self", "https://cdn.tailwindcss.com"},
-			cspbuilder.ScriptSrc:  {"self", "https://unpkg.com", "https://cdn.tailwindcss.com"},
+			cspbuilder.StyleSrc:   {"self", "https://cdn.tailwindcss.com", "https://unpkg.com"},
+			cspbuilder.ScriptSrc:  {"self", "https://cdn.tailwindcss.com", "https://unpkg.com"},
 		},
 	}
 	secureMiddleware := secure.New(secure.Options{
