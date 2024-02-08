@@ -54,8 +54,8 @@ func New(ctx context.Context, config *Config) *Server {
 		ContentSecurityPolicy: "script-src $NONCE",
 	})
 
-	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Heartbeat("/healthz"))
+	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.Logger)
