@@ -15,7 +15,7 @@ import (
 // The access token is then used to redirect the client to the Notion URL.
 // If any errors occur during the process, appropriate error responses are returned.
 func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.ConnectParams) *api.Response {
-	if params.Error == nil {
+	if params.Error != nil {
 		s.logger.Error(params.Error)
 		return api.ConnectJSON500Response(api.Error{Message: ErrCancel, Code: 500})
 	}
