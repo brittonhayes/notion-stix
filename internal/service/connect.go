@@ -79,13 +79,12 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	s.logger.Info("Token received from Notion API")
 	s.tokens[body.BotID] = token
 
-	s.logger.Info("Starting notion import for bot", "bot_id", body.BotID)
-
 	botCookie := http.Cookie{
 		Name:     "bot_id",
 		Value:    body.BotID,
 		Secure:   true,
 		HttpOnly: true,
+		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	}
 	pageCookie := http.Cookie{
@@ -93,6 +92,7 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		Value:    body.DuplicatedTemplateID,
 		Secure:   true,
 		HttpOnly: true,
+		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	}
 
