@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
+	"github.com/brittonhayes/notion-stix/internal/cookies"
 	"github.com/dstotijn/go-notion"
 )
 
@@ -91,19 +92,19 @@ func (s *Service) importSTIXToNotion(client *notion.Client, parentPageID string)
 }
 
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
-	botID, err := r.Cookie("bot_id")
+	botID, err := cookies.Read(r, "bot_id")
 	if err != nil {
 		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
 	}
 
-	pageID, err := r.Cookie("page_id")
+	pageID, err := cookies.Read(r, "page_id")
 	if err != nil {
 		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
 	}
 
-	client := notion.NewClient(s.tokens[botID.Value], notion.WithHTTPClient(s.client))
+	client := notion.NewClient(s.tokens[botID], notion.WithHTTPClient(s.client))
 
-	err = s.importSTIXToNotion(client, pageID.Value)
+	err = s.importSTIXToNotion(client, pageID)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})

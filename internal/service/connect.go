@@ -8,6 +8,12 @@ import (
 	"net/http"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
+	"github.com/brittonhayes/notion-stix/internal/cookies"
+)
+
+var (
+	ErrValueTooLong = "cookie value too long"
+	ErrInvalidValue = "invalid cookie value"
 )
 
 // Connect handles the connection request from the client.
@@ -67,7 +73,7 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 
 	if token == "" {
 		s.logger.Error("No token received from Notion API")
-		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: 500})
+		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: http.StatusBadRequest})
 	}
 
 	s.logger.Info("Token received from Notion API")
@@ -75,18 +81,34 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 
 	s.logger.Info("Starting notion import for bot", "bot_id", body.BotID)
 
-	http.SetCookie(w, &http.Cookie{
+	botCookie := http.Cookie{
 		Name:     "bot_id",
 		Value:    body.BotID,
 		Secure:   true,
+		HttpOnly: true,
+		Path:     "/api/import",
 		SameSite: http.SameSiteLaxMode,
-	})
-	http.SetCookie(w, &http.Cookie{
+	}
+	pageCookie := http.Cookie{
 		Name:     "page_id",
 		Value:    body.DuplicatedTemplateID,
 		Secure:   true,
+		HttpOnly: true,
+		Path:     "/api/import",
 		SameSite: http.SameSiteLaxMode,
-	})
+	}
+
+	err = cookies.Write(w, botCookie)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
+	}
+
+	err = cookies.Write(w, pageCookie)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
+	}
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
