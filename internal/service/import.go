@@ -13,24 +13,27 @@ import (
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
 	botID, err := cookies.Read(r, "bot_id")
 	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
 	}
 
 	pageID, err := cookies.Read(r, "page_id")
 	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
 	}
 
 	token, err := s.store.Get(botID)
 	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
 	}
 
 	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
 	err = s.importSTIXToNotion(client, pageID)
 	if err != nil {
 		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: 500})
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
