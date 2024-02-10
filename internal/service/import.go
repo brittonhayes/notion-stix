@@ -54,7 +54,10 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 		return err
 	}
 
-	for _, ap := range attackPatterns {
+	for i, ap := range attackPatterns {
+		if i > 50 {
+			return nil
+		}
 		<-limiter.C
 		_, err = s.repo.CreateAttackPatternPage(ctx, client, attackPatternDB, ap)
 		if err != nil {
@@ -74,7 +77,10 @@ func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *no
 		return err
 	}
 
-	for _, c := range campaigns {
+	for i, c := range campaigns {
+		if i > 50 {
+			return nil
+		}
 		<-limiter.C
 		_, err := s.repo.CreateCampaignPage(ctx, client, campaignDB, c)
 		if err != nil {
@@ -93,7 +99,10 @@ func (s *Service) importMalwareIntelToNotionDB(ctx context.Context, client *noti
 		return err
 	}
 
-	for _, mw := range malware {
+	for i, mw := range malware {
+		if i > 50 {
+			return nil
+		}
 		<-limiter.C
 		_, err = s.repo.CreateMalwarePage(ctx, client, malwareDB, mw)
 		if err != nil {
