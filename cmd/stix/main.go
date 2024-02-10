@@ -13,7 +13,6 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/server"
 	"github.com/brittonhayes/notion-stix/internal/service"
 	"github.com/charmbracelet/log"
-
 	"github.com/urfave/cli/v2"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -29,54 +28,70 @@ func main() {
 	logger := log.New(os.Stdout)
 
 	app := &cli.App{
-		Name:    "notion-stix",
-		Usage:   "An integration for importing STIX-format Threat Intelligence into Notion",
-		Suggest: true,
+		Name:                 "notion-stix",
+		Authors:              []*cli.Author{{Name: "Britton Hayes"}},
+		Usage:                "An integration for importing STIX-format Threat Intelligence into Notion",
+		EnableBashCompletion: true,
+		Args:                 false,
+		Suggest:              true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "page-id",
-				Usage: "The UUID of the Notion page to create the databases within",
+				Name:     "notion-auth-url",
+				Aliases:  []string{"a"},
+				Usage:    "The Notion auth URL (https://www.notion.so/my-integrations)",
+				EnvVars:  []string{"NOTION_AUTH_URL"},
+				Category: "Auth",
+				Required: true,
 			},
 			&cli.StringFlag{
-				Name:    "notion-auth-url",
-				Aliases: []string{"a"},
-				Usage:   "The Notion auth URL (https://www.notion.so/my-integrations)",
-				EnvVars: []string{"NOTION_AUTH_URL"},
+				Name:     "redirect-uri",
+				Usage:    "The redirect URI for the Notion OAuth integration",
+				EnvVars:  []string{"REDIRECT_URI"},
+				Required: true,
+				Category: "Auth",
 			},
 			&cli.StringFlag{
-				Name:    "redirect-uri",
-				Usage:   "The redirect URI for the Notion OAuth integration",
-				EnvVars: []string{"REDIRECT_URI"},
+				Name:     "client-id",
+				Aliases:  []string{"i"},
+				Usage:    "The Notion OAuth client ID",
+				EnvVars:  []string{"OAUTH_CLIENT_ID"},
+				Required: true,
+				Category: "Auth",
 			},
 			&cli.StringFlag{
-				Name:    "client-id",
-				Aliases: []string{"i"},
-				Usage:   "The Notion OAuth client ID",
-				EnvVars: []string{"OAUTH_CLIENT_ID"},
+				Name:     "client-secret",
+				Aliases:  []string{"s"},
+				Usage:    "The Notion OAuth client secret",
+				EnvVars:  []string{"OAUTH_CLIENT_SECRET"},
+				Required: true,
+				Category: "Auth",
 			},
 			&cli.StringFlag{
-				Name:    "client-secret",
-				Aliases: []string{"s"},
-				Usage:   "The Notion OAuth client secret",
-				EnvVars: []string{"OAUTH_CLIENT_SECRET"},
+				Name:     "cookie-secret",
+				Usage:    "The secret key used to encrypt cookies",
+				EnvVars:  []string{"COOKIE_SECRET"},
+				Required: true,
+				Category: "Auth",
 			},
 			&cli.StringFlag{
-				Name:    "cookie-secret",
-				Usage:   "The secret key used to encrypt cookies",
-				EnvVars: []string{"COOKIE_SECRET"},
+				Name:     "db",
+				Usage:    "The database to use for storing the STIX data",
+				Value:    "notion-stix.db",
+				EnvVars:  []string{"DB", "RAILWAY_VOLUME_NAME"},
+				Category: "Application",
 			},
 			&cli.StringFlag{
-				Name:    "db",
-				Usage:   "The database to use for storing the STIX data",
-				Value:   "notion-stix.db",
-				EnvVars: []string{"DB", "RAILWAY_VOLUME_NAME"},
+				Name:     "page-id",
+				Usage:    "The UUID of the Notion page to create the databases within",
+				Category: "Application",
 			},
 			&cli.IntFlag{
-				Name:    "port",
-				Aliases: []string{"p"},
-				Usage:   "The port to run the server on",
-				EnvVars: []string{"PORT"},
-				Value:   8080,
+				Name:     "port",
+				Aliases:  []string{"p"},
+				Usage:    "The port to run the server on",
+				EnvVars:  []string{"PORT"},
+				Value:    8080,
+				Category: "Application",
 			},
 		},
 		Before: func(c *cli.Context) error {
