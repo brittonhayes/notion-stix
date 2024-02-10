@@ -15,8 +15,7 @@ sequenceDiagram
     Notion->>Server: Return temporary code in query params
     Server->>Notion: POST code to api.notion.com/v1/oauth/token
     Notion->>Server: Return token and bot_id
-    %% <!-- TODO replace in-memory map with key value store -->
-    Notion->>Server: Store token in-memory map key=bot_id value=token
+    Notion->>Server: Store token in badger on-disk kv store with key=bot_id value=token
     Server->>Browser: Encrypt bot_id value with AES GCM then store secure cookie key=bot_id value=encrypted_bot_id
     User->>Browser: Refresh homepage with secure cookies
     Browser->>Server: Requests homepage with AES encrypted cookies

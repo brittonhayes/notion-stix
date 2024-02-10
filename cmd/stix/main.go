@@ -29,8 +29,9 @@ func main() {
 	logger := log.New(os.Stdout)
 
 	app := &cli.App{
-		Name:  "notion-stix",
-		Usage: "An integration for importing STIX-format Threat Intelligence into Notion",
+		Name:    "notion-stix",
+		Usage:   "An integration for importing STIX-format Threat Intelligence into Notion",
+		Suggest: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "page-id",
@@ -68,7 +69,7 @@ func main() {
 				Name:    "db",
 				Usage:   "The database to use for storing the STIX data",
 				Value:   "notion-stix.db",
-				EnvVars: []string{"DB"},
+				EnvVars: []string{"DB", "RAILWAY_VOLUME_NAME"},
 			},
 			&cli.IntFlag{
 				Name:    "port",
@@ -86,6 +87,9 @@ func main() {
 
 			repo = mitre.NewRepository(b)
 
+			// TODO at some point we need to do garbage collection
+			// when? not sure yet. The docs mention doing it on nil errs
+			// https://dgraph.io/docs/badger/get-started/#garbage-collection
 			store, err = kv.NewPersistentKV(c.String("db"))
 			if err != nil {
 				return err
