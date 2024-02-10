@@ -5,15 +5,9 @@ package kv
 import (
 	"time"
 
+	notionstix "github.com/brittonhayes/notion-stix"
 	badger "github.com/dgraph-io/badger/v4"
 )
-
-// Store is the interface that defines the methods for a key-value store.
-type Store interface {
-	Get(key string) (string, error)
-	Set(key, value string) error
-	Cleanup()
-}
 
 // InMemoryKV is an in-memory key-value store implementation.
 type InMemoryKV struct {
@@ -21,7 +15,7 @@ type InMemoryKV struct {
 }
 
 // NewInMemoryKV creates a new instance of InMemoryKV.
-func NewInMemoryKV() Store {
+func NewInMemoryKV() notionstix.Store {
 	return &InMemoryKV{
 		store: make(map[string]string),
 	}
@@ -47,7 +41,7 @@ type PersistentKV struct {
 }
 
 // NewPersistentKV creates a new instance of PersistentKV with the specified file path.
-func NewPersistentKV(file string) (Store, error) {
+func NewPersistentKV(file string) (notionstix.Store, error) {
 	db, err := badger.Open(badger.DefaultOptions(file))
 	if err != nil {
 		return nil, err

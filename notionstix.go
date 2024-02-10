@@ -27,6 +27,13 @@ func (s StixSource) String() string {
 	return [...]string{"hack/enterprise-attack-14.1.json"}[s-1]
 }
 
+// Store is the interface that defines the methods for a key-value store.
+type Store interface {
+	Get(key string) (string, error)
+	Set(key, value string) error
+	Cleanup()
+}
+
 // Repository defines the interface for interacting with the Notion database.
 type Repository interface {
 	// ListAttackPatterns returns a slice of AttackPattern objects.

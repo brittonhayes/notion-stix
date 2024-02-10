@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	notionstix "github.com/brittonhayes/notion-stix"
+	"github.com/brittonhayes/notion-stix/internal/kv"
 	"github.com/brittonhayes/notion-stix/internal/mitre"
 	"github.com/brittonhayes/notion-stix/internal/server"
 	"github.com/brittonhayes/notion-stix/internal/service"
@@ -21,7 +22,8 @@ import (
 func main() {
 
 	var (
-		repo notionstix.Repository
+		repo  notionstix.Repository
+		store notionstix.Store
 	)
 
 	logger := log.New(os.Stdout)
@@ -62,6 +64,12 @@ func main() {
 				Usage:   "The secret key used to encrypt cookies",
 				EnvVars: []string{"COOKIE_SECRET"},
 			},
+			&cli.StringFlag{
+				Name:    "db",
+				Usage:   "The database to use for storing the STIX data",
+				Value:   "notion-stix.db",
+				EnvVars: []string{"DB"},
+			},
 			&cli.IntFlag{
 				Name:    "port",
 				Aliases: []string{"p"},
@@ -77,12 +85,18 @@ func main() {
 			}
 
 			repo = mitre.NewRepository(b)
+
+			store, err = kv.NewPersistentKV(c.String("db"))
+			if err != nil {
+				return err
+			}
+
 			return nil
 		},
 		Action: func(c *cli.Context) error {
 			config := &server.Config{
 				Repository:  repo,
-				Service:     service.New(repo, c.String("redirect-uri"), c.String("client-id"), c.String("client-secret"), c.String("cookie-secret")),
+				Service:     service.New(repo, c.String("redirect-uri"), c.String("client-id"), c.String("client-secret"), c.String("cookie-secret"), store),
 				ServiceName: "stix",
 				Environment: "production",
 				Port:        c.Int("port"),

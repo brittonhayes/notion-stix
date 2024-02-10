@@ -24,8 +24,7 @@ const (
 
 // Service represents a service that handles integration setup and other operations.
 type Service struct {
-	repo   notionstix.Repository
-	source notionstix.StixSource
+	repo notionstix.Repository
 
 	logger *log.Logger
 
@@ -40,10 +39,12 @@ type Service struct {
 	// Likely replace this with badger on-disk kv store and use a railway volume for persistence
 	// https://dgraph.io/docs/badger/get-started/#using-keyvalue-pairs
 	tokens map[string]string
+
+	store notionstix.Store
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string) *Service {
+func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string, store notionstix.Store) *Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
@@ -57,5 +58,6 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 		oauthClientID:     oauthClientID,
 		oauthClientSecret: oauthClientSecret,
 		cookieSecret:      cookieSecret,
+		store:             store,
 	}
 }

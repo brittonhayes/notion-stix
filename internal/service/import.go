@@ -21,8 +21,12 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
 	}
 
-	client := notion.NewClient(s.tokens[botID], notion.WithHTTPClient(s.client))
+	token, err := s.store.Get(botID)
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: err.Error(), Code: 500})
+	}
 
+	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
 	err = s.importSTIXToNotion(client, pageID)
 	if err != nil {
 		s.logger.Error(err)
@@ -30,12 +34,11 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	}
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
-
 	return nil
 }
 
 func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
-	limiter := time.Tick(600 * time.Millisecond)
+	limiter := time.NewTicker(600 * time.Millisecond)
 
 	attackPatterns := s.repo.ListAttackPatterns()
 	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, client, pageID)
@@ -44,7 +47,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 	}
 
 	for _, ap := range attackPatterns {
-		<-limiter
+		<-limiter.C
 		_, err = s.repo.CreateAttackPatternPage(ctx, client, attackPatternDB, ap)
 		if err != nil {
 			return err
@@ -55,7 +58,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 }
 
 func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
-	limiter := time.Tick(600 * time.Millisecond)
+	limiter := time.NewTicker(600 * time.Millisecond)
 
 	campaigns := s.repo.ListCampaigns()
 	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, client, pageID)
@@ -64,7 +67,7 @@ func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *no
 	}
 
 	for _, c := range campaigns {
-		<-limiter
+		<-limiter.C
 		_, err := s.repo.CreateCampaignPage(ctx, client, campaignDB, c)
 		if err != nil {
 			return err
@@ -74,7 +77,7 @@ func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *no
 }
 
 func (s *Service) importMalwareIntelToNotionDB(ctx context.Context, client *notion.Client, parentPageID string) error {
-	limiter := time.Tick(600 * time.Millisecond)
+	limiter := time.NewTicker(600 * time.Millisecond)
 
 	malware := s.repo.ListMalware()
 	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, client, parentPageID)
@@ -83,7 +86,7 @@ func (s *Service) importMalwareIntelToNotionDB(ctx context.Context, client *noti
 	}
 
 	for _, mw := range malware {
-		<-limiter
+		<-limiter.C
 		_, err = s.repo.CreateMalwarePage(ctx, client, malwareDB, mw)
 		if err != nil {
 			return err

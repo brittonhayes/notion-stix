@@ -59,7 +59,7 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		s.logger.Error(fmt.Errorf("Notion API returned status code %d", resp.StatusCode))
+		s.logger.Error(fmt.Errorf("notion api returned status code %d", resp.StatusCode))
 		return api.ConnectJSON500Response(api.Error{Message: ErrTokenRequest, Code: 500})
 	}
 
@@ -77,7 +77,11 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	}
 
 	s.logger.Info("Token received from Notion API")
-	s.tokens[body.BotID] = token
+	err = s.store.Set(body.BotID, token)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
+	}
 
 	botCookie := http.Cookie{
 		Name:     "bot_id",
