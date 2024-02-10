@@ -10,6 +10,12 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
+const (
+	// FIXME this is a temporary limit to prevent the server from timing out
+	// This should be removed once the task queue is implemented
+	MAX_PAGES = 50
+)
+
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
 	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
@@ -55,7 +61,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 	}
 
 	for i, ap := range attackPatterns {
-		if i > 50 {
+		if i > MAX_PAGES {
 			return nil
 		}
 		<-limiter.C
@@ -78,7 +84,7 @@ func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *no
 	}
 
 	for i, c := range campaigns {
-		if i > 50 {
+		if i > MAX_PAGES {
 			return nil
 		}
 		<-limiter.C
