@@ -30,6 +30,11 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	}
 
 	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
+
+	// TODO this takes an insane amount of time. Need to implement a task queue or something.
+	// Potentially also offer different import options for a subset of MITRE ATT&CK
+	// Maybe use this with redis https://github.com/hibiken/asynq
+	// Also maybe worth considering SSE for the client to listen for updates
 	err = s.importSTIXToNotion(client, pageID)
 	if err != nil {
 		s.logger.Error(err)

@@ -24,23 +24,16 @@ const (
 
 // Service represents a service that handles integration setup and other operations.
 type Service struct {
-	repo notionstix.Repository
-
-	logger *log.Logger
+	repo  notionstix.Repository
+	store notionstix.Store
 
 	client *http.Client
+	logger *log.Logger
 
 	redirectURI       string
 	oauthClientID     string
 	oauthClientSecret string
 	cookieSecret      string
-
-	// TODO consider replacing in-memory map with persistent token storage
-	// Likely replace this with badger on-disk kv store and use a railway volume for persistence
-	// https://dgraph.io/docs/badger/get-started/#using-keyvalue-pairs
-	tokens map[string]string
-
-	store notionstix.Store
 }
 
 // New creates a new instance of the Service.
@@ -51,7 +44,6 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	retryClient.Logger = nil
 	return &Service{
 		repo:              repo,
-		tokens:            make(map[string]string),
 		logger:            log.New(os.Stdout),
 		client:            retryClient.StandardClient(),
 		redirectURI:       redirectURI,
