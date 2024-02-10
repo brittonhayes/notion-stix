@@ -11,13 +11,13 @@ import (
 )
 
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
 	}
 
-	pageID, err := cookies.Read(r, "page_id")
+	pageID, err := cookies.ReadEncrypted(r, "page_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
