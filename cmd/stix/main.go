@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"sort"
 
@@ -83,16 +84,26 @@ func main() {
 				Category: "Application",
 			},
 			&cli.StringFlag{
-				Name:     "redis-url",
-				Usage:    "The URI for the Redis server",
-				Value:    "redis://localhost:6379",
-				EnvVars:  []string{"REDIS_URL"},
+				Name:     "redis-host",
+				Usage:    "The host for the Redis server",
+				Value:    "localhost",
+				Required: true,
+				EnvVars:  []string{"REDISHOST"},
+				Category: "Application",
+			},
+			&cli.IntFlag{
+				Name:     "redis-port",
+				Usage:    "The port for the Redis server",
+				Value:    6379,
+				Required: true,
+				EnvVars:  []string{"REDISPORT"},
 				Category: "Application",
 			},
 			&cli.StringFlag{
 				Name:     "redis-password",
 				Usage:    "The password for the Redis server",
 				EnvVars:  []string{"REDIS_PASSWORD"},
+				Required: true,
 				Category: "Application",
 			},
 			&cli.StringFlag{
@@ -125,7 +136,8 @@ func main() {
 				return err
 			}
 
-			queue = tasks.NewQueue(c.String("redis-url"), c.String("redis-password"))
+			redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
+			queue = tasks.NewQueue(redisURL, c.String("redis-password"))
 
 			return nil
 		},
