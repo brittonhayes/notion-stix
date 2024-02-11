@@ -7,7 +7,9 @@ import (
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/brittonhayes/notion-stix/internal/cookies"
+	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/dstotijn/go-notion"
+	"github.com/hibiken/asynq"
 )
 
 const (
@@ -54,21 +56,40 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
 	limiter := time.NewTicker(600 * time.Millisecond)
 
-	attackPatterns := s.repo.ListAttackPatterns()
+	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
 	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, client, pageID)
 	if err != nil {
 		return err
 	}
 
-	for i, ap := range attackPatterns {
+	for i, attackPattern := range attackPatterns {
 		if i > MAX_PAGES {
 			return nil
 		}
 		<-limiter.C
-		_, err = s.repo.CreateAttackPatternPage(ctx, client, attackPatternDB, ap)
+		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, client, tasks.CreateAttackPatternPagePayload{
+			CreatePageParams: notion.CreatePageParams{
+				ParentID: attackPatternDB.ID,
+			},
+			AttackPattern: attackPattern,
+		})
 		if err != nil {
+			s.logger.Error(err)
 			return err
 		}
+
+		// Enqueue the page creation with all tasks for this page grouped together.
+		info, err := s.queue.Enqueue(task, asynq.Group(pageID), asynq.Retention(24*time.Hour))
+		if err != nil {
+			s.logger.Error(err)
+			return err
+		}
+		s.logger.Debug("enqueued task", "task", info.ID, "queue", info.Queue)
+
+		// _, err = s.repo.CreateAttackPatternPage(ctx, client, attackPatternDB.ID, attackPattern)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	return nil

@@ -34,12 +34,12 @@ var INDICATOR_PROPERTIES = notion.DatabaseProperties{
 
 // ListIndicators returns all the indicators in the MITRE collection.
 func (m *MITRE) ListIndicators() []*stix2.Indicator {
-	return m.collection.Indicators()
+	return m.Collection.Indicators()
 }
 
 // indicatorByID returns the indicator with the specified ID.
 func (m *MITRE) indicatorByID(id string) *stix2.Indicator {
-	return m.collection.Indicator(stix2.Identifier(id))
+	return m.Collection.Indicator(stix2.Identifier(id))
 }
 
 // CreateIndicatorsDatabase creates a new indicators database in Notion.

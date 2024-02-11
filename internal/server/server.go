@@ -9,6 +9,7 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/hibiken/asynq"
 	"github.com/unrolled/secure"
 )
 
@@ -24,6 +25,7 @@ type Config struct {
 	Service     api.ServerInterface
 	ServiceName string
 	Environment string
+	RedisAddr   string
 	Port        int
 }
 
@@ -77,6 +79,9 @@ func New(ctx context.Context, config *Config) *Server {
 		Handler: r,
 		Addr:    fmt.Sprintf("0.0.0.0:%d", port),
 	}
+
+	queue := asynq.NewClient(asynq.RedisClientOpt{Addr: config.RedisAddr})
+	defer queue.Close()
 
 	return &Server{
 		server: httpsrv,

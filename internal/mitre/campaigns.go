@@ -7,47 +7,18 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
-// CAMPAIGNS_DATABASE_TITLE is the title of the campaigns database.
-const CAMPAIGNS_DATABASE_TITLE = "Campaigns"
-
-// CAMPAIGNS_DATABASE_ICON is the icon of the campaigns database.
-const CAMPAIGNS_DATABASE_ICON = "🗺️"
-
-// CAMPAIGNS_PAGE_ICON is the icon of the campaign page.
-const CAMPAIGNS_PAGE_ICON = "🗺️"
-
-// CAMPAIGN_PROPERTIES defines the properties of a campaign in the Notion database.
-var CAMPAIGN_PROPERTIES = notion.DatabaseProperties{
-	"Name": {
-		Type:  notion.DBPropTypeTitle,
-		Title: &notion.EmptyMetadata{},
-	},
-	"Description": {
-		Type:     notion.DBPropTypeRichText,
-		RichText: &notion.EmptyMetadata{},
-	},
-	"Objective": {
-		Type:     notion.DBPropTypeRichText,
-		RichText: &notion.EmptyMetadata{},
-	},
-	"First Seen": {
-		Type: notion.DBPropTypeDate,
-		Date: &notion.EmptyMetadata{},
-	},
-	"Created": {
-		Type: notion.DBPropTypeDate,
-		Date: &notion.EmptyMetadata{},
-	},
-}
+const (
+	// CAMPAIGNS_DATABASE_TITLE is the title of the campaigns database.
+	CAMPAIGNS_DATABASE_TITLE = "Campaigns"
+	// CAMPAIGNS_DATABASE_ICON is the icon of the campaigns database.
+	CAMPAIGNS_DATABASE_ICON = "🗺️"
+	// CAMPAIGNS_PAGE_ICON is the icon of the campaign page.
+	CAMPAIGNS_PAGE_ICON = "🗺️"
+)
 
 // ListCampaigns returns all campaigns in the collection.
 func (m *MITRE) ListCampaigns() []*stix2.Campaign {
-	return m.collection.Campaigns()
-}
-
-// campaignByID returns the campaign with the specified ID.
-func (m *MITRE) campaignByID(id string) *stix2.Campaign {
-	return m.collection.Campaign(stix2.Identifier(id))
+	return m.Collection.Campaigns()
 }
 
 // CreateCampaignsDatabase creates a campaigns database in Notion.
@@ -55,7 +26,28 @@ func (m *MITRE) CreateCampaignsDatabase(ctx context.Context, client *notion.Clie
 	params := notion.CreateDatabaseParams{
 		ParentPageID: parentPageID,
 		Title:        []notion.RichText{{Text: &notion.Text{Content: CAMPAIGNS_DATABASE_TITLE}}},
-		Properties:   CAMPAIGN_PROPERTIES,
+		Properties: notion.DatabaseProperties{
+			"Name": {
+				Type:  notion.DBPropTypeTitle,
+				Title: &notion.EmptyMetadata{},
+			},
+			"Description": {
+				Type:     notion.DBPropTypeRichText,
+				RichText: &notion.EmptyMetadata{},
+			},
+			"Objective": {
+				Type:     notion.DBPropTypeRichText,
+				RichText: &notion.EmptyMetadata{},
+			},
+			"First Seen": {
+				Type: notion.DBPropTypeDate,
+				Date: &notion.EmptyMetadata{},
+			},
+			"Created": {
+				Type: notion.DBPropTypeDate,
+				Date: &notion.EmptyMetadata{},
+			},
+		},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
 			Emoji: notion.StringPtr(CAMPAIGNS_DATABASE_ICON),
@@ -91,31 +83,31 @@ func (m *MITRE) CreateCampaignPage(ctx context.Context, client *notion.Client, d
 		Children: blocks,
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
-				Type: CAMPAIGN_PROPERTIES["Name"].Type,
+				Type: notion.DBPropTypeTitle,
 				Title: []notion.RichText{
 					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: campaign.Name}},
 				},
 			},
 			"Description": notion.DatabasePageProperty{
-				Type: CAMPAIGN_PROPERTIES["Description"].Type,
+				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
 					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(campaign.Description, 2000)}},
 				},
 			},
 			"Objective": notion.DatabasePageProperty{
-				Type: CAMPAIGN_PROPERTIES["Objective"].Type,
+				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
 					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(campaign.Objective, 2000)}},
 				},
 			},
 			"First Seen": notion.DatabasePageProperty{
-				Type: CAMPAIGN_PROPERTIES["First Seen"].Type,
+				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
 					Start: notion.NewDateTime(campaign.FirstSeen.Time, false),
 				},
 			},
 			"Created": notion.DatabasePageProperty{
-				Type: CAMPAIGN_PROPERTIES["Created"].Type,
+				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
 					Start: notion.NewDateTime(campaign.Created.Time, false),
 				},

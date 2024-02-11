@@ -8,11 +8,16 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
+const (
+	STIX_JSON = "hack/enterprise-attack-14.1.json"
+)
+
 // MITRE represents the API for
 // integrating the MITRE ATT&CK framework in Notion.
 type MITRE struct {
-	collection *stix2.Collection
-	Logger     *log.Logger
+	Logger *log.Logger
+
+	Collection *stix2.Collection
 }
 
 // Option is a functional option for configuring the MITRE struct.
@@ -28,7 +33,7 @@ func WithLogger(logger *log.Logger) Option {
 // WithCollection sets the STIX2 collection for the MITRE struct.
 func WithCollection(collection *stix2.Collection) Option {
 	return func(m *MITRE) {
-		m.collection = collection
+		m.Collection = collection
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/mitre"
 	"github.com/brittonhayes/notion-stix/internal/server"
 	"github.com/brittonhayes/notion-stix/internal/service"
+	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/charmbracelet/log"
 	"github.com/urfave/cli/v2"
 
@@ -23,6 +24,7 @@ func main() {
 	var (
 		repo  notionstix.Repository
 		store notionstix.Store
+		queue *tasks.Queue
 	)
 
 	logger := log.New(os.Stdout)
@@ -77,7 +79,20 @@ func main() {
 				Name:     "db",
 				Usage:    "The database to use for storing the STIX data",
 				Value:    "notion-stix.db",
-				EnvVars:  []string{"DB", "RAILWAY_VOLUME_NAME"},
+				EnvVars:  []string{"DB"},
+				Category: "Application",
+			},
+			&cli.StringFlag{
+				Name:     "redis-url",
+				Usage:    "The URI for the Redis server",
+				Value:    "redis://localhost:6379",
+				EnvVars:  []string{"REDIS_URL"},
+				Category: "Application",
+			},
+			&cli.StringFlag{
+				Name:     "redis-password",
+				Usage:    "The password for the Redis server",
+				EnvVars:  []string{"REDIS_PASSWORD"},
 				Category: "Application",
 			},
 			&cli.StringFlag{
@@ -95,7 +110,7 @@ func main() {
 			},
 		},
 		Before: func(c *cli.Context) error {
-			b, err := notionstix.FS.ReadFile(notionstix.MitreEnterpriseAttack.String())
+			b, err := notionstix.FS.ReadFile(mitre.STIX_JSON)
 			if err != nil {
 				return err
 			}
@@ -110,12 +125,22 @@ func main() {
 				return err
 			}
 
+			queue = tasks.NewQueue(c.String("redis-url"), c.String("redis-password"))
+
 			return nil
 		},
 		Action: func(c *cli.Context) error {
 			config := &server.Config{
-				Repository:  repo,
-				Service:     service.New(repo, c.String("redirect-uri"), c.String("client-id"), c.String("client-secret"), c.String("cookie-secret"), store),
+				Repository: repo,
+				Service: service.New(
+					repo,
+					c.String("redirect-uri"),
+					c.String("client-id"),
+					c.String("client-secret"),
+					c.String("cookie-secret"),
+					store,
+					queue,
+				),
 				ServiceName: "stix",
 				Environment: "production",
 				Port:        c.Int("port"),

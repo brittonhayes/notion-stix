@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/log"
 
 	notionstix "github.com/brittonhayes/notion-stix"
+	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -26,6 +27,7 @@ const (
 type Service struct {
 	repo  notionstix.Repository
 	store notionstix.Store
+	queue *tasks.Queue
 
 	client *http.Client
 	logger *log.Logger
@@ -37,7 +39,7 @@ type Service struct {
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string, store notionstix.Store) *Service {
+func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string, store notionstix.Store, queue *tasks.Queue) *Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
@@ -51,5 +53,6 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 		oauthClientSecret: oauthClientSecret,
 		cookieSecret:      cookieSecret,
 		store:             store,
+		queue:             queue,
 	}
 }
