@@ -7,14 +7,28 @@ const (
 )
 
 type Queue struct {
-	*asynq.Client
+	Client *asynq.Client
+	Server *asynq.Server
 }
 
 func NewQueue(url string, password string) *Queue {
-	client := asynq.NewClient(&asynq.RedisClientOpt{
+	options := &asynq.RedisClientOpt{
 		Addr:     url,
 		Password: password,
 		DB:       0,
-	})
-	return &Queue{client}
+	}
+	client := asynq.NewClient(options)
+	srv := asynq.NewServer(
+		options,
+		asynq.Config{
+			// Specify how many concurrent workers to use
+			Concurrency: 10,
+		},
+	)
+
+	return &Queue{Client: client, Server: srv}
+}
+
+func NewMux() *asynq.ServeMux {
+	return asynq.NewServeMux()
 }

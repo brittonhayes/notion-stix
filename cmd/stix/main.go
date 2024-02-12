@@ -15,7 +15,9 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/service"
 	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/charmbracelet/log"
+	"github.com/hibiken/asynq"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/sync/errgroup"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -159,8 +161,28 @@ func main() {
 			}
 			s := server.New(c.Context, config)
 
-			logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
-			return s.ListenAndServe()
+			redisOpts := asynq.RedisClientOpt{Addr: config.RedisAddr}
+			queue := asynq.NewClient(redisOpts)
+			defer queue.Close()
+
+			g := new(errgroup.Group)
+			g.Go(func() error {
+				mux := tasks.NewMux()
+				mux.Handle(tasks.TypeDatabaseCreate, tasks.NewAttackPatternProcessor())
+
+				logger.Info("Starting queue server")
+				queueServer := asynq.NewServer(redisOpts, asynq.Config{
+					Concurrency: 10,
+				})
+				return queueServer.Run(mux)
+			})
+
+			g.Go(func() error {
+				logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
+				return s.ListenAndServe()
+			})
+
+			return g.Wait()
 		},
 	}
 

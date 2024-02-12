@@ -17,34 +17,55 @@ const (
 	MAX_PAGES = 50
 )
 
-func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
+type authenticationResponse struct {
+	pageID string
+	client *notion.Client
+}
+
+func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (error, *authenticationResponse) {
 	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
+		return err, nil
 	}
 
 	pageID, err := cookies.ReadEncrypted(r, "page_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
+		return err, nil
 	}
 
 	token, err := s.store.Get(botID)
 	if err != nil {
 		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: http.StatusText(http.StatusInternalServerError), Code: http.StatusInternalServerError})
+		return err, nil
 	}
 
 	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
 
+	return nil, &authenticationResponse{
+		pageID: pageID,
+		client: client,
+	}
+}
+
+func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
 	// TODO this takes an insane amount of time. Need to implement a task queue or something.
 	// Potentially also offer different import options for a subset of MITRE ATT&CK
 	// Maybe use this with redis https://github.com/hibiken/asynq
 	// Also maybe worth considering SSE for the client to listen for updates
-	err = s.importSTIXToNotion(client, pageID)
+	err := s.importAttackPatternsIntelToNotionDB(w, r)
 	if err != nil {
-		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
+	err = s.importCampaignsIntelToNotionDB(w, r)
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
+	err = s.importMalwareIntelToNotionDB(w, r)
+	if err != nil {
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
@@ -52,11 +73,18 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	return nil
 }
 
-func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
+func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	limiter := time.NewTicker(600 * time.Millisecond)
 
+	err, auth := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
 	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
-	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, client, pageID)
+	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, auth.client, auth.pageID)
 	if err != nil {
 		return err
 	}
@@ -66,7 +94,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 			return nil
 		}
 		<-limiter.C
-		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, client, tasks.CreateAttackPatternPagePayload{
+		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, auth.client, tasks.CreateAttackPatternPagePayload{
 			ParentPageID:  attackPatternDB.ID,
 			AttackPattern: attackPattern,
 		})
@@ -75,7 +103,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 			return err
 		}
 
-		info, err := s.queue.Enqueue(task)
+		info, err := s.queue.Client.Enqueue(task)
 		if err != nil {
 			s.logger.Error(err, "failed to enqueue task", "task", task.Type)
 			return err
@@ -91,11 +119,17 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 	return nil
 }
 
-func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *notion.Client, pageID string) error {
+func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	limiter := time.NewTicker(600 * time.Millisecond)
+	ctx := context.Background()
+
+	err, auth := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
 
 	campaigns := s.repo.ListCampaigns()
-	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, client, pageID)
+	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, auth.client, auth.pageID)
 	if err != nil {
 		return err
 	}
@@ -105,7 +139,7 @@ func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *no
 			return nil
 		}
 		<-limiter.C
-		_, err := s.repo.CreateCampaignPage(ctx, client, campaignDB, c)
+		_, err := s.repo.CreateCampaignPage(ctx, auth.client, campaignDB, c)
 		if err != nil {
 			return err
 		}
@@ -113,11 +147,17 @@ func (s *Service) importCampaignsIntelToNotionDB(ctx context.Context, client *no
 	return nil
 }
 
-func (s *Service) importMalwareIntelToNotionDB(ctx context.Context, client *notion.Client, parentPageID string) error {
+func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	limiter := time.NewTicker(600 * time.Millisecond)
+	ctx := context.Background()
+
+	err, auth := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
 
 	malware := s.repo.ListMalware()
-	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, client, parentPageID)
+	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, auth.client, auth.pageID)
 	if err != nil {
 		return err
 	}
@@ -127,33 +167,10 @@ func (s *Service) importMalwareIntelToNotionDB(ctx context.Context, client *noti
 			return nil
 		}
 		<-limiter.C
-		_, err = s.repo.CreateMalwarePage(ctx, client, malwareDB, mw)
+		_, err = s.repo.CreateMalwarePage(ctx, auth.client, malwareDB, mw)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
-}
-
-func (s *Service) importSTIXToNotion(client *notion.Client, parentPageID string) error {
-
-	s.logger.Info("Creating notion pages (this might take a while)")
-
-	ctx := context.Background()
-	err := s.importAttackPatternsIntelToNotionDB(ctx, client, parentPageID)
-	if err != nil {
-		return err
-	}
-
-	err = s.importCampaignsIntelToNotionDB(ctx, client, parentPageID)
-	if err != nil {
-		return err
-	}
-
-	err = s.importMalwareIntelToNotionDB(ctx, client, parentPageID)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

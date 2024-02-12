@@ -9,14 +9,13 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/hibiken/asynq"
 	"github.com/unrolled/secure"
 )
 
 // Server represents an HTTP server.
 type Server struct {
-	server *http.Server
-	Router *chi.Mux
+	httpServer *http.Server
+	Router     *chi.Mux
 }
 
 // Config represents the configuration for the server.
@@ -31,7 +30,7 @@ type Config struct {
 
 // ListenAndServe starts the HTTP server and listens for incoming requests.
 func (s *Server) ListenAndServe() error {
-	return s.server.ListenAndServe()
+	return s.httpServer.ListenAndServe()
 }
 
 // New creates a new instance of the server.
@@ -80,11 +79,8 @@ func New(ctx context.Context, config *Config) *Server {
 		Addr:    fmt.Sprintf("0.0.0.0:%d", port),
 	}
 
-	queue := asynq.NewClient(asynq.RedisClientOpt{Addr: config.RedisAddr})
-	defer queue.Close()
-
 	return &Server{
-		server: httpsrv,
-		Router: r,
+		httpServer: httpsrv,
+		Router:     r,
 	}
 }
