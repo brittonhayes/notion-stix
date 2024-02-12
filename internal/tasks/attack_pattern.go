@@ -3,7 +3,6 @@ package tasks
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/TcM1911/stix2"
 	notionstix "github.com/brittonhayes/notion-stix"
@@ -45,12 +44,12 @@ func NewAttackPatternProcessor(repo notionstix.Repository) *AttackPatternProcess
 func (p *AttackPatternProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
 	var payload CreateAttackPatternPagePayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
-		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
+		return asynq.SkipRetry
 	}
 
 	_, err := p.repo.CreateAttackPatternPage(ctx, payload.ParentPageID, payload.NotionClient, payload.AttackPattern)
 	if err != nil {
-		return fmt.Errorf("CreateAttackPatternPage failed: %v: %w", err, asynq.SkipRetry)
+		return asynq.SkipRetry
 	}
 
 	return nil
