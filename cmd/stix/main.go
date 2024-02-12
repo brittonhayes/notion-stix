@@ -102,7 +102,7 @@ func main() {
 			&cli.StringFlag{
 				Name:     "redis-password",
 				Usage:    "The password for the Redis server",
-				EnvVars:  []string{"REDIS_PASSWORD"},
+				EnvVars:  []string{"REDISPASSWORD"},
 				Required: true,
 				Category: "Application",
 			},
