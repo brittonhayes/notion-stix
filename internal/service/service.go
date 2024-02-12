@@ -3,8 +3,10 @@ package service
 import (
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/log"
+	"golang.org/x/time/rate"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/tasks"
@@ -25,9 +27,10 @@ const (
 
 // Service represents a service that handles integration setup and other operations.
 type Service struct {
-	repo  notionstix.Repository
-	store notionstix.Store
-	queue *tasks.Queue
+	repo    notionstix.Repository
+	store   notionstix.Store
+	limiter *rate.Limiter
+	queue   *tasks.Queue
 
 	client *http.Client
 	logger *log.Logger
@@ -54,5 +57,6 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 		cookieSecret:      cookieSecret,
 		store:             store,
 		queue:             queue,
+		limiter:           rate.NewLimiter(rate.Every(time.Second), 3),
 	}
 }

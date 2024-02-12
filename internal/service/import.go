@@ -7,7 +7,6 @@ import (
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/brittonhayes/notion-stix/internal/cookies"
-	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/dstotijn/go-notion"
 )
 
@@ -74,14 +73,12 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 }
 
 func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
-	limiter := time.NewTicker(600 * time.Millisecond)
 
+	ctx := context.Background()
 	auth, err := s.authenticate(w, r)
 	if err != nil {
 		return err
 	}
-
-	ctx := context.Background()
 
 	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, auth.client, auth.pageID)
 	if err != nil {
@@ -89,35 +86,33 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 	}
 
 	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
-	for i, attackPattern := range attackPatterns {
-		if i > MAX_PAGES {
-			return nil
-		}
-		<-limiter.C
-		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, attackPatternDB.ID, attackPattern, auth.client)
+	for _, attackPattern := range attackPatterns {
+		r := s.limiter.Reserve()
+		time.Sleep(r.Delay())
+
+		_, err = s.repo.CreateAttackPatternPage(ctx, attackPatternDB.ID, auth.client, attackPattern)
 		if err != nil {
-			s.logger.Error(err)
 			return err
 		}
-
-		info, err := s.queue.Client.Enqueue(task)
-		if err != nil {
-			s.logger.Error(err, "failed to enqueue task", "task", task.Type)
-			return err
-		}
-		s.logger.Info("enqueued task", "task", info.ID, "queue", info.Queue)
-
-		// _, err = s.repo.CreateAttackPatternPage(ctx, client, attackPatternDB.ID, attackPattern)
+		// task, err := tasks.NewCreateAttackPatternsPageTask(ctx, attackPatternDB.ID, attackPattern, auth.client)
 		// if err != nil {
+		// 	s.logger.Error(err)
 		// 	return err
 		// }
+
+		// info, err := s.queue.Client.Enqueue(task)
+		// if err != nil {
+		// 	s.logger.Error(err, "failed to enqueue task", "task", task.Type)
+		// 	return err
+		// }
+		// s.logger.Info("enqueued task", "task", info.ID, "queue", info.Queue)
+
 	}
 
 	return nil
 }
 
 func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
-	limiter := time.NewTicker(600 * time.Millisecond)
 	ctx := context.Background()
 
 	auth, err := s.authenticate(w, r)
@@ -131,11 +126,10 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		return err
 	}
 
-	for i, c := range campaigns {
-		if i > MAX_PAGES {
-			return nil
-		}
-		<-limiter.C
+	for _, c := range campaigns {
+		r := s.limiter.Reserve()
+		time.Sleep(r.Delay())
+
 		_, err := s.repo.CreateCampaignPage(ctx, auth.client, campaignDB, c)
 		if err != nil {
 			return err
@@ -145,7 +139,6 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 }
 
 func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
-	limiter := time.NewTicker(600 * time.Millisecond)
 	ctx := context.Background()
 
 	auth, err := s.authenticate(w, r)
@@ -159,11 +152,10 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 		return err
 	}
 
-	for i, mw := range malware {
-		if i > 50 {
-			return nil
-		}
-		<-limiter.C
+	for _, mw := range malware {
+		r := s.limiter.Reserve()
+		time.Sleep(r.Delay())
+
 		_, err = s.repo.CreateMalwarePage(ctx, auth.client, malwareDB, mw)
 		if err != nil {
 			return err

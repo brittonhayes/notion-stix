@@ -4,7 +4,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -16,7 +15,6 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/service"
 	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/charmbracelet/log"
-	"github.com/hibiken/asynq"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
 
@@ -160,32 +158,32 @@ func main() {
 			}
 			s := server.New(c.Context, config)
 
-			redisOpts := asynq.RedisClientOpt{
-				Addr:     fmt.Sprintf("%s:%d", c.String("redis-host"), c.Int("redis-port")),
-				Password: c.String("redis-password"),
-			}
+			// redisOpts := asynq.RedisClientOpt{
+			// 	Addr:     fmt.Sprintf("%s:%d", c.String("redis-host"), c.Int("redis-port")),
+			// 	Password: c.String("redis-password"),
+			// }
 
 			g := new(errgroup.Group)
-			g.Go(func() error {
-				mux := tasks.NewMux()
-				mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor(repo))
+			// g.Go(func() error {
+			// 	mux := tasks.NewMux()
+			// 	mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor(repo))
 
-				logger.Info("Starting queue server")
-				queueServer := asynq.NewServer(redisOpts, asynq.Config{
-					Concurrency: 1,
-					BaseContext: func() context.Context { return c.Context },
-				})
+			// 	logger.Info("Starting queue server")
+			// 	queueServer := asynq.NewServer(redisOpts, asynq.Config{
+			// 		Concurrency: 1,
+			// 		BaseContext: func() context.Context { return c.Context },
+			// 	})
 
-				return queueServer.Run(mux)
-			})
+			// 	return queueServer.Run(mux)
+			// })
 
 			g.Go(func() error {
 				logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 				return s.ListenAndServe()
 			})
 
-			queue := asynq.NewClient(redisOpts)
-			defer queue.Close()
+			// queue := asynq.NewClient(redisOpts)
+			// defer queue.Close()
 
 			return g.Wait()
 		},
