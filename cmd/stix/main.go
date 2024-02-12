@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -159,9 +160,10 @@ func main() {
 			}
 			s := server.New(c.Context, config)
 
-			redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
-
-			redisOpts := asynq.RedisClientOpt{Addr: redisURL, Password: c.String("redis-password"), DB: 0}
+			redisOpts := asynq.RedisClientOpt{
+				Addr:     fmt.Sprintf("%s:%d", c.String("redis-host"), c.Int("redis-port")),
+				Password: c.String("redis-password"),
+			}
 
 			g := new(errgroup.Group)
 			g.Go(func() error {
@@ -169,7 +171,11 @@ func main() {
 				mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor(repo))
 
 				logger.Info("Starting queue server")
-				queueServer := asynq.NewServer(redisOpts, asynq.Config{})
+				queueServer := asynq.NewServer(redisOpts, asynq.Config{
+					Concurrency: 1,
+					BaseContext: func() context.Context { return c.Context },
+				})
+
 				return queueServer.Run(mux)
 			})
 
