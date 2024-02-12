@@ -162,8 +162,6 @@ func main() {
 			redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
 
 			redisOpts := asynq.RedisClientOpt{Addr: redisURL, Password: c.String("redis-password"), DB: 0}
-			queue := asynq.NewClient(redisOpts)
-			defer queue.Close()
 
 			g := new(errgroup.Group)
 			g.Go(func() error {
@@ -179,6 +177,9 @@ func main() {
 				logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 				return s.ListenAndServe()
 			})
+
+			// queue := asynq.NewClient(redisOpts)
+			// defer queue.Close()
 
 			return g.Wait()
 		},
