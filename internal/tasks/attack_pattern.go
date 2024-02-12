@@ -20,7 +20,7 @@ type CreateAttackPatternPagePayload struct {
 	NotionClient  *notion.Client       `json:"notion_client,omitempty"`
 }
 
-func NewCreateAttackPatternsPageTask(ctx context.Context, parentPageId string, attackPattern *stix2.AttackPattern, client *notion.Client) (*asynq.Task, error) {
+func NewCreateAttackPatternsPageTask(ctx context.Context, client *notion.Client, parentPageId string, attackPattern *stix2.AttackPattern) (*asynq.Task, error) {
 	payload, err := json.Marshal(CreateAttackPatternPagePayload{
 		ParentPageID:  parentPageId,
 		AttackPattern: attackPattern,
@@ -51,7 +51,7 @@ func (p *AttackPatternProcessor) ProcessTask(ctx context.Context, t *asynq.Task)
 		return asynq.SkipRetry
 	}
 
-	_, err := p.repo.CreateAttackPatternPage(ctx, payload.ParentPageID, payload.NotionClient, payload.AttackPattern)
+	_, err := p.repo.CreateAttackPatternPage(ctx, payload.NotionClient, payload.ParentPageID, payload.AttackPattern)
 	if err != nil {
 		return asynq.SkipRetry
 	}

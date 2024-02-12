@@ -31,7 +31,7 @@ type AttackPatternRepository interface {
 	// CreateAttackPatternsDatabase creates a new Notion database for AttackPatterns.
 	CreateAttackPatternsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error)
 	// CreateAttackPatternPage creates a new Notion page for a specific AttackPattern.
-	CreateAttackPatternPage(ctx context.Context, databaseID string, client *notion.Client, attackPattern *stix2.AttackPattern) (notion.Page, error)
+	CreateAttackPatternPage(ctx context.Context, client *notion.Client, databaseID string, attackPattern *stix2.AttackPattern) (notion.Page, error)
 }
 
 type CampaignRepository interface {

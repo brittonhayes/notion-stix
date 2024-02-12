@@ -55,7 +55,7 @@ func (m *MITRE) CreateAttackPatternsDatabase(ctx context.Context, client *notion
 }
 
 // CreateAttackPatternPage creates a new attack pattern page in the specified database.
-func (m *MITRE) CreateAttackPatternPage(ctx context.Context, databaseID string, client *notion.Client, attackPattern *stix2.AttackPattern) (notion.Page, error) {
+func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Client, databaseID string, attackPattern *stix2.AttackPattern) (notion.Page, error) {
 
 	var blocks []notion.Block
 	blocks = append(blocks, []notion.Block{

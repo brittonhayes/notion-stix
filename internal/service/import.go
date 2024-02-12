@@ -86,14 +86,19 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 	}
 
 	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
-	for _, attackPattern := range attackPatterns {
+	for i, attackPattern := range attackPatterns {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err = s.repo.CreateAttackPatternPage(ctx, attackPatternDB.ID, auth.client, attackPattern)
+		_, err = s.repo.CreateAttackPatternPage(ctx, auth.client, attackPatternDB.ID, attackPattern)
 		if err != nil {
 			return err
 		}
+
+		if i%10 == 0 || i == len(attackPatterns)-1 {
+			s.logger.Info("imported attack patterns", "done", i, "total", len(attackPatterns))
+		}
+
 		// task, err := tasks.NewCreateAttackPatternsPageTask(ctx, attackPatternDB.ID, attackPattern, auth.client)
 		// if err != nil {
 		// 	s.logger.Error(err)
@@ -106,7 +111,6 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		// 	return err
 		// }
 		// s.logger.Info("enqueued task", "task", info.ID, "queue", info.Queue)
-
 	}
 
 	return nil

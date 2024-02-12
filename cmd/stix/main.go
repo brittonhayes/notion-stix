@@ -16,7 +16,6 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/charmbracelet/log"
 	"github.com/urfave/cli/v2"
-	"golang.org/x/sync/errgroup"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -163,7 +162,7 @@ func main() {
 			// 	Password: c.String("redis-password"),
 			// }
 
-			g := new(errgroup.Group)
+			// g := new(errgroup.Group)
 			// g.Go(func() error {
 			// 	mux := tasks.NewMux()
 			// 	mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor(repo))
@@ -177,15 +176,15 @@ func main() {
 			// 	return queueServer.Run(mux)
 			// })
 
-			g.Go(func() error {
-				logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
-				return s.ListenAndServe()
-			})
+			// g.Go(func() error {
+			logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
+			return s.ListenAndServe()
+			// })
 
 			// queue := asynq.NewClient(redisOpts)
 			// defer queue.Close()
 
-			return g.Wait()
+			// return g.Wait()
 		},
 	}
 
