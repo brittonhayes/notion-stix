@@ -14,6 +14,7 @@ func NewQueue(url string, password string) *Queue {
 	client := asynq.NewClient(&asynq.RedisClientOpt{
 		Addr:     url,
 		Password: password,
+		DB:       0,
 	})
 	return &Queue{client}
 }

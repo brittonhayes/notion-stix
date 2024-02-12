@@ -15,6 +15,8 @@ const (
 	TypeAttackPatternsPageCreate = "attack_patterns:create_page"
 )
 
+var _ asynq.Handler = (*AttackPattern)(nil)
+
 type AttackPattern struct {
 	client *notion.Client
 	repo   notionstix.Repository

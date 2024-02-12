@@ -9,7 +9,6 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/cookies"
 	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/dstotijn/go-notion"
-	"github.com/hibiken/asynq"
 )
 
 const (
@@ -76,13 +75,12 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 			return err
 		}
 
-		// Enqueue the page creation with all tasks for this page grouped together.
-		info, err := s.queue.Enqueue(task, asynq.Group(pageID), asynq.Retention(24*time.Hour))
+		info, err := s.queue.Enqueue(task)
 		if err != nil {
-			s.logger.Error(err)
+			s.logger.Error(err, "failed to enqueue task", "task", task.Type)
 			return err
 		}
-		s.logger.Debug("enqueued task", "task", info.ID, "queue", info.Queue)
+		s.logger.Info("enqueued task", "task", info.ID, "queue", info.Queue)
 
 		// _, err = s.repo.CreateAttackPatternPage(ctx, client, attackPatternDB.ID, attackPattern)
 		// if err != nil {
