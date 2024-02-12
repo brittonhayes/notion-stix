@@ -159,7 +159,9 @@ func main() {
 			}
 			s := server.New(c.Context, config)
 
-			redisOpts := asynq.RedisClientOpt{Addr: config.RedisAddr}
+			redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
+
+			redisOpts := asynq.RedisClientOpt{Addr: redisURL, Password: c.String("redis-password"), DB: 0}
 			queue := asynq.NewClient(redisOpts)
 			defer queue.Close()
 
@@ -169,9 +171,7 @@ func main() {
 				mux.Handle(tasks.TypeDatabaseCreate, tasks.NewAttackPatternProcessor())
 
 				logger.Info("Starting queue server")
-				queueServer := asynq.NewServer(redisOpts, asynq.Config{
-					Concurrency: 10,
-				})
+				queueServer := asynq.NewServer(redisOpts, asynq.Config{})
 				return queueServer.Run(mux)
 			})
 
