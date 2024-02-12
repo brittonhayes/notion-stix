@@ -68,9 +68,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(ctx context.Context, clien
 		}
 		<-limiter.C
 		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, client, tasks.CreateAttackPatternPagePayload{
-			CreatePageParams: notion.CreatePageParams{
-				ParentID: attackPatternDB.ID,
-			},
+			ParentPageID:  attackPatternDB.ID,
 			AttackPattern: attackPattern,
 		})
 		if err != nil {

@@ -55,7 +55,7 @@ func (m *MITRE) CreateAttackPatternsDatabase(ctx context.Context, client *notion
 }
 
 // CreateAttackPatternPage creates a new attack pattern page in the specified database.
-func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Client, databaseID string, payload interface{}) (notion.Page, error) {
+func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Client, databaseID string, attackPattern *stix2.AttackPattern) (notion.Page, error) {
 
 	var blocks []notion.Block
 	blocks = append(blocks, []notion.Block{
@@ -64,7 +64,7 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 		},
 	}...)
 
-	blocks = append(blocks, referencesToBlocks(payload.(*stix2.AttackPattern).ExternalReferences)...)
+	blocks = append(blocks, referencesToBlocks(attackPattern.ExternalReferences)...)
 
 	properties := notion.CreatePageParams{
 		ParentID:   databaseID,
@@ -74,26 +74,26 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 			Emoji: notion.StringPtr(attackPatternPageIcon),
 		},
 		Title: []notion.RichText{
-			{Text: &notion.Text{Content: payload.(*stix2.AttackPattern).Name}},
+			{Text: &notion.Text{Content: attackPattern.Name}},
 		},
 		Children: blocks,
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeTitle,
 				Title: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: payload.(*stix2.AttackPattern).Name}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: attackPattern.Name}},
 				},
 			},
 			"Description": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(payload.(*stix2.AttackPattern).Description, 2000)}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(attackPattern.Description, 2000)}},
 				},
 			},
 			"Created": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
-					Start: notion.NewDateTime(payload.(*stix2.AttackPattern).Created.Time, false),
+					Start: notion.NewDateTime(attackPattern.Created.Time, false),
 				},
 			},
 		},

@@ -21,7 +21,7 @@ type AttackPattern struct {
 }
 
 type CreateAttackPatternPagePayload struct {
-	notion.CreatePageParams
+	ParentPageID  string
 	AttackPattern *stix2.AttackPattern
 }
 
@@ -40,7 +40,7 @@ func (p *AttackPattern) ProcessTask(ctx context.Context, t *asynq.Task) error {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	_, err := p.repo.CreateAttackPatternPage(ctx, p.client, payload.ParentID, payload.AttackPattern)
+	_, err := p.repo.CreateAttackPatternPage(ctx, p.client, payload.ParentPageID, payload.AttackPattern)
 	if err != nil {
 		return fmt.Errorf("CreateAttackPatternPage failed: %v: %w", err, asynq.SkipRetry)
 	}
