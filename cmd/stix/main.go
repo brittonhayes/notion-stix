@@ -88,7 +88,6 @@ func main() {
 			&cli.StringFlag{
 				Name:     "redis-host",
 				Usage:    "The host for the Redis server",
-				Value:    "localhost",
 				Required: true,
 				EnvVars:  []string{"REDISHOST"},
 				Category: "Application",
@@ -96,7 +95,6 @@ func main() {
 			&cli.IntFlag{
 				Name:     "redis-port",
 				Usage:    "The port for the Redis server",
-				Value:    6379,
 				Required: true,
 				EnvVars:  []string{"REDISPORT"},
 				Category: "Application",
