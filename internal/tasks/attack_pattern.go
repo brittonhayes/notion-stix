@@ -15,13 +15,17 @@ const (
 )
 
 type CreateAttackPatternPagePayload struct {
-	ParentPageID  string
-	AttackPattern *stix2.AttackPattern
-	NotionClient  *notion.Client
+	ParentPageID  string               `json:"parent_page_id,omitempty"`
+	AttackPattern *stix2.AttackPattern `json:"attack_pattern,omitempty"`
+	NotionClient  *notion.Client       `json:"notion_client,omitempty"`
 }
 
-func NewCreateAttackPatternsPageTask(ctx context.Context, properties CreateAttackPatternPagePayload) (*asynq.Task, error) {
-	payload, err := json.Marshal(properties)
+func NewCreateAttackPatternsPageTask(ctx context.Context, parentPageId string, attackPattern *stix2.AttackPattern, client *notion.Client) (*asynq.Task, error) {
+	payload, err := json.Marshal(CreateAttackPatternPagePayload{
+		ParentPageID:  parentPageId,
+		AttackPattern: attackPattern,
+		NotionClient:  client,
+	})
 	if err != nil {
 		return nil, err
 	}

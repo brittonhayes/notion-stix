@@ -22,31 +22,31 @@ type authenticationResponse struct {
 	client *notion.Client
 }
 
-func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (error, *authenticationResponse) {
+func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (*authenticationResponse, error) {
 	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
-		return err, nil
+		return nil, err
 	}
 
 	pageID, err := cookies.ReadEncrypted(r, "page_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
-		return err, nil
+		return nil, err
 	}
 
 	token, err := s.store.Get(botID)
 	if err != nil {
 		s.logger.Error(err)
-		return err, nil
+		return nil, err
 	}
 
 	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
 
-	return nil, &authenticationResponse{
+	return &authenticationResponse{
 		pageID: pageID,
 		client: client,
-	}
+	}, nil
 }
 
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
@@ -76,7 +76,7 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	limiter := time.NewTicker(600 * time.Millisecond)
 
-	err, auth := s.authenticate(w, r)
+	auth, err := s.authenticate(w, r)
 	if err != nil {
 		return err
 	}
@@ -94,11 +94,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 			return nil
 		}
 		<-limiter.C
-		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, tasks.CreateAttackPatternPagePayload{
-			ParentPageID:  attackPatternDB.ID,
-			AttackPattern: attackPattern,
-			NotionClient:  auth.client,
-		})
+		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, attackPatternDB.ID, attackPattern, auth.client)
 		if err != nil {
 			s.logger.Error(err)
 			return err
@@ -124,7 +120,7 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 	limiter := time.NewTicker(600 * time.Millisecond)
 	ctx := context.Background()
 
-	err, auth := s.authenticate(w, r)
+	auth, err := s.authenticate(w, r)
 	if err != nil {
 		return err
 	}
@@ -152,7 +148,7 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 	limiter := time.NewTicker(600 * time.Millisecond)
 	ctx := context.Background()
 
-	err, auth := s.authenticate(w, r)
+	auth, err := s.authenticate(w, r)
 	if err != nil {
 		return err
 	}
