@@ -15,6 +15,7 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/service"
 	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/charmbracelet/log"
+	"github.com/hibiken/asynq"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
 
@@ -158,27 +159,27 @@ func main() {
 			}
 			s := server.New(c.Context, config)
 
-			// redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
+			redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
 
-			// redisOpts := asynq.RedisClientOpt{Addr: redisURL, Password: c.String("redis-password"), DB: 0}
+			redisOpts := asynq.RedisClientOpt{Addr: redisURL, Password: c.String("redis-password"), DB: 0}
 
 			g := new(errgroup.Group)
-			// g.Go(func() error {
-			// 	mux := tasks.NewMux()
-			// 	mux.Handle(tasks.TypeDatabaseCreate, tasks.NewAttackPatternProcessor())
+			g.Go(func() error {
+				mux := tasks.NewMux()
+				mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor())
 
-			// 	logger.Info("Starting queue server")
-			// 	queueServer := asynq.NewServer(redisOpts, asynq.Config{})
-			// 	return queueServer.Run(mux)
-			// })
+				logger.Info("Starting queue server")
+				queueServer := asynq.NewServer(redisOpts, asynq.Config{})
+				return queueServer.Run(mux)
+			})
 
 			g.Go(func() error {
 				logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 				return s.ListenAndServe()
 			})
 
-			// queue := asynq.NewClient(redisOpts)
-			// defer queue.Close()
+			queue := asynq.NewClient(redisOpts)
+			defer queue.Close()
 
 			return g.Wait()
 		},
