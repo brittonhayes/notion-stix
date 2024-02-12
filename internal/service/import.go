@@ -10,12 +10,6 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
-const (
-	// FIXME this is a temporary limit to prevent the server from timing out
-	// This should be removed once the task queue is implemented
-	MAX_PAGES = 50
-)
-
 type authenticationResponse struct {
 	pageID string
 	client *notion.Client
@@ -96,7 +90,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		}
 
 		if i%10 == 0 || i == len(attackPatterns)-1 {
-			s.logger.Info("imported attack patterns", "done", i, "total", len(attackPatterns))
+			s.logger.Info("imported attack patterns intel", "done", i, "total", len(attackPatterns))
 		}
 
 		// task, err := tasks.NewCreateAttackPatternsPageTask(ctx, attackPatternDB.ID, attackPattern, auth.client)
@@ -130,13 +124,17 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		return err
 	}
 
-	for _, c := range campaigns {
+	for i, campaign := range campaigns {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err := s.repo.CreateCampaignPage(ctx, auth.client, campaignDB, c)
+		_, err := s.repo.CreateCampaignPage(ctx, auth.client, campaignDB, campaign)
 		if err != nil {
 			return err
+		}
+
+		if i%10 == 0 || i == len(campaigns)-1 {
+			s.logger.Info("imported campaign intel", "done", i, "total", len(campaigns))
 		}
 	}
 	return nil
@@ -156,13 +154,17 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 		return err
 	}
 
-	for _, mw := range malware {
+	for i, mw := range malware {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
 		_, err = s.repo.CreateMalwarePage(ctx, auth.client, malwareDB, mw)
 		if err != nil {
 			return err
+		}
+
+		if i%10 == 0 || i == len(malware)-1 {
+			s.logger.Info("imported malware intel", "done", i, "total", len(malware))
 		}
 	}
 	return nil
