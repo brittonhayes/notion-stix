@@ -20,11 +20,6 @@ func (m *MITRE) ListAttackPatterns(collection *stix2.Collection) []*stix2.Attack
 	return collection.AttackPatterns()
 }
 
-// TODO so what im trying to do here is create a type for each of the data types that can
-// be imported from mitre
-// Those types should each implement the asynq.Handler interface to support queuing if they perform some
-// sort of long-lived job
-
 // CreateAttackPatternsDatabase creates a new attack patterns database in Notion.
 func (m *MITRE) CreateAttackPatternsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error) {
 	params := notion.CreateDatabaseParams{

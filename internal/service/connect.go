@@ -112,6 +112,9 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
 	}
 
+	// TODO store the status of the import in the kv store so we can display it to the user
+	// Could maybe pair this with SSE for the client to listen for updates
+
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 
 	return nil
