@@ -83,20 +83,21 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 
 	ctx := context.Background()
 
-	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
 	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, auth.client, auth.pageID)
 	if err != nil {
 		return err
 	}
 
+	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
 	for i, attackPattern := range attackPatterns {
 		if i > MAX_PAGES {
 			return nil
 		}
 		<-limiter.C
-		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, auth.client, tasks.CreateAttackPatternPagePayload{
+		task, err := tasks.NewCreateAttackPatternsPageTask(ctx, tasks.CreateAttackPatternPagePayload{
 			ParentPageID:  attackPatternDB.ID,
 			AttackPattern: attackPattern,
+			NotionClient:  auth.client,
 		})
 		if err != nil {
 			s.logger.Error(err)

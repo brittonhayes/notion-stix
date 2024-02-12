@@ -18,9 +18,10 @@ const (
 type CreateAttackPatternPagePayload struct {
 	ParentPageID  string
 	AttackPattern *stix2.AttackPattern
+	NotionClient  *notion.Client
 }
 
-func NewCreateAttackPatternsPageTask(ctx context.Context, client *notion.Client, properties CreateAttackPatternPagePayload) (*asynq.Task, error) {
+func NewCreateAttackPatternsPageTask(ctx context.Context, properties CreateAttackPatternPagePayload) (*asynq.Task, error) {
 	payload, err := json.Marshal(properties)
 	if err != nil {
 		return nil, err
@@ -32,12 +33,13 @@ func NewCreateAttackPatternsPageTask(ctx context.Context, client *notion.Client,
 var _ asynq.Handler = (*AttackPatternProcessor)(nil)
 
 type AttackPatternProcessor struct {
-	client *notion.Client
-	repo   notionstix.Repository
+	repo notionstix.Repository
 }
 
-func NewAttackPatternProcessor() *AttackPatternProcessor {
-	return &AttackPatternProcessor{}
+func NewAttackPatternProcessor(repo notionstix.Repository) *AttackPatternProcessor {
+	return &AttackPatternProcessor{
+		repo: repo,
+	}
 }
 
 func (p *AttackPatternProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
@@ -46,7 +48,7 @@ func (p *AttackPatternProcessor) ProcessTask(ctx context.Context, t *asynq.Task)
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	_, err := p.repo.CreateAttackPatternPage(ctx, p.client, payload.ParentPageID, payload.AttackPattern)
+	_, err := p.repo.CreateAttackPatternPage(ctx, payload.ParentPageID, payload.NotionClient, payload.AttackPattern)
 	if err != nil {
 		return fmt.Errorf("CreateAttackPatternPage failed: %v: %w", err, asynq.SkipRetry)
 	}

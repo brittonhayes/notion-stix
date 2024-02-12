@@ -166,7 +166,7 @@ func main() {
 			g := new(errgroup.Group)
 			g.Go(func() error {
 				mux := tasks.NewMux()
-				mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor())
+				mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor(repo))
 
 				logger.Info("Starting queue server")
 				queueServer := asynq.NewServer(redisOpts, asynq.Config{})
