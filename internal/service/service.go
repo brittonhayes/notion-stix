@@ -9,7 +9,6 @@ import (
 	"golang.org/x/time/rate"
 
 	notionstix "github.com/brittonhayes/notion-stix"
-	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -30,7 +29,6 @@ type Service struct {
 	repo    notionstix.Repository
 	store   notionstix.Store
 	limiter *rate.Limiter
-	queue   *tasks.Queue
 
 	client *http.Client
 	logger *log.Logger
@@ -42,7 +40,7 @@ type Service struct {
 }
 
 // New creates a new instance of the Service.
-func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string, store notionstix.Store, queue *tasks.Queue) *Service {
+func New(repo notionstix.Repository, redirectURI string, oauthClientID string, oauthClientSecret string, cookieSecret string, store notionstix.Store) *Service {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
@@ -56,7 +54,6 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 		oauthClientSecret: oauthClientSecret,
 		cookieSecret:      cookieSecret,
 		store:             store,
-		queue:             queue,
 		limiter:           rate.NewLimiter(rate.Every(time.Second), 3),
 	}
 }

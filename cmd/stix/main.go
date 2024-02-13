@@ -4,7 +4,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"sort"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/mitre"
 	"github.com/brittonhayes/notion-stix/internal/server"
 	"github.com/brittonhayes/notion-stix/internal/service"
-	"github.com/brittonhayes/notion-stix/internal/tasks"
 	"github.com/charmbracelet/log"
 	"github.com/urfave/cli/v2"
 
@@ -25,7 +23,6 @@ func main() {
 	var (
 		repo  notionstix.Repository
 		store notionstix.Store
-		queue *tasks.Queue
 	)
 
 	logger := log.New(os.Stdout)
@@ -84,27 +81,6 @@ func main() {
 				Category: "Application",
 			},
 			&cli.StringFlag{
-				Name:     "redis-host",
-				Usage:    "The host for the Redis server",
-				Required: true,
-				EnvVars:  []string{"REDISHOST"},
-				Category: "Application",
-			},
-			&cli.IntFlag{
-				Name:     "redis-port",
-				Usage:    "The port for the Redis server",
-				Required: true,
-				EnvVars:  []string{"REDISPORT"},
-				Category: "Application",
-			},
-			&cli.StringFlag{
-				Name:     "redis-password",
-				Usage:    "The password for the Redis server",
-				EnvVars:  []string{"REDISPASSWORD"},
-				Required: true,
-				Category: "Application",
-			},
-			&cli.StringFlag{
 				Name:     "page-id",
 				Usage:    "The UUID of the Notion page to create the databases within",
 				Category: "Application",
@@ -134,9 +110,6 @@ func main() {
 				return err
 			}
 
-			redisURL := fmt.Sprintf("%s:%d", c.String("redis-url"), c.Int("port"))
-			queue = tasks.NewQueue(redisURL, c.String("redis-password"))
-
 			return nil
 		},
 		Action: func(c *cli.Context) error {
@@ -149,42 +122,14 @@ func main() {
 					c.String("client-secret"),
 					c.String("cookie-secret"),
 					store,
-					queue,
 				),
 				ServiceName: "stix",
 				Environment: "production",
 				Port:        c.Int("port"),
 			}
 			s := server.New(c.Context, config)
-
-			// redisOpts := asynq.RedisClientOpt{
-			// 	Addr:     fmt.Sprintf("%s:%d", c.String("redis-host"), c.Int("redis-port")),
-			// 	Password: c.String("redis-password"),
-			// }
-
-			// g := new(errgroup.Group)
-			// g.Go(func() error {
-			// 	mux := tasks.NewMux()
-			// 	mux.Handle(tasks.TypeAttackPatternsPageCreate, tasks.NewAttackPatternProcessor(repo))
-
-			// 	logger.Info("Starting queue server")
-			// 	queueServer := asynq.NewServer(redisOpts, asynq.Config{
-			// 		Concurrency: 1,
-			// 		BaseContext: func() context.Context { return c.Context },
-			// 	})
-
-			// 	return queueServer.Run(mux)
-			// })
-
-			// g.Go(func() error {
 			logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 			return s.ListenAndServe()
-			// })
-
-			// queue := asynq.NewClient(redisOpts)
-			// defer queue.Close()
-
-			// return g.Wait()
 		},
 	}
 
