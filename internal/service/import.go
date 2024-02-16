@@ -52,15 +52,15 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
-	err = s.importCampaignsIntelToNotionDB(w, r)
-	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
+	// err = s.importCampaignsIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
 
-	err = s.importMalwareIntelToNotionDB(w, r)
-	if err != nil {
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
+	// err = s.importMalwareIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 	return nil
@@ -79,7 +79,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		return err
 	}
 
-	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
+	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())[0:10]
 	for i, attackPattern := range attackPatterns {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
@@ -92,19 +92,6 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		if i%10 == 0 || i == len(attackPatterns)-1 {
 			s.logger.Info("imported attack patterns intel", "done", i, "total", len(attackPatterns))
 		}
-
-		// task, err := tasks.NewCreateAttackPatternsPageTask(ctx, attackPatternDB.ID, attackPattern, auth.client)
-		// if err != nil {
-		// 	s.logger.Error(err)
-		// 	return err
-		// }
-
-		// info, err := s.queue.Client.Enqueue(task)
-		// if err != nil {
-		// 	s.logger.Error(err, "failed to enqueue task", "task", task.Type)
-		// 	return err
-		// }
-		// s.logger.Info("enqueued task", "task", info.ID, "queue", info.Queue)
 	}
 
 	return nil

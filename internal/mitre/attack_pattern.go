@@ -38,6 +38,20 @@ func (m *MITRE) CreateAttackPatternsDatabase(ctx context.Context, client *notion
 				Type: notion.DBPropTypeDate,
 				Date: &notion.EmptyMetadata{},
 			},
+			"Killchain Phase": {
+				Type: notion.DBPropTypeMultiSelect,
+				MultiSelect: &notion.SelectMetadata{
+					Options: []notion.SelectOptions{
+						{Name: "reconnaissance"},
+						{Name: "weaponization"},
+						{Name: "delivery"},
+						{Name: "exploitation"},
+						{Name: "installation"},
+						{Name: "command-and-control"},
+						{Name: "actions-on-objectives"},
+					},
+				},
+			},
 		},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
@@ -60,6 +74,11 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 	}...)
 
 	blocks = append(blocks, referencesToBlocks(attackPattern.ExternalReferences)...)
+
+	phaseOptions := []notion.SelectOptions{}
+	for _, phase := range attackPattern.KillChainPhase[0:] {
+		phaseOptions = append(phaseOptions, notion.SelectOptions{Name: phase.Phase})
+	}
 
 	properties := notion.CreatePageParams{
 		ParentID:   databaseID,
@@ -84,6 +103,10 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 				RichText: []notion.RichText{
 					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(attackPattern.Description, 2000)}},
 				},
+			},
+			"Killchain Phase": notion.DatabasePageProperty{
+				Type:        notion.DBPropTypeSelect,
+				MultiSelect: phaseOptions,
 			},
 			"Created": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeDate,
