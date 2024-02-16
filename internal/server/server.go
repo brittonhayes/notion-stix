@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-chi/httprate"
 	"github.com/unrolled/secure"
 )
@@ -46,6 +48,17 @@ func New(ctx context.Context, config *Config) *Server {
 	// that server names match. We don't know how this thing will be run.
 	swagger.Servers = nil
 
+	logger := httplog.NewLogger("notion-stix", httplog.Options{
+		// JSON:             true,
+		LogLevel:         slog.LevelInfo,
+		MessageFieldName: "message",
+		QuietDownRoutes: []string{
+			"/",
+			"/healthz",
+		},
+		QuietDownPeriod: 10 * time.Second,
+	})
+
 	r := chi.NewRouter()
 
 	// TODO content security policy needs to be dialed in
@@ -78,7 +91,7 @@ func New(ctx context.Context, config *Config) *Server {
 	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RedirectSlashes)
-	r.Use(middleware.Logger)
+	r.Use(httplog.RequestLogger(logger))
 
 	api.Handler(config.Service, api.WithRouter(r))
 
