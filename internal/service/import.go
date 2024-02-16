@@ -49,16 +49,19 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	// Also maybe worth considering SSE for the client to listen for updates
 	err := s.importAttackPatternsIntelToNotionDB(w, r)
 	if err != nil {
+		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
 	// err = s.importCampaignsIntelToNotionDB(w, r)
 	// if err != nil {
+	// s.logger.Error(err)
 	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	// }
 
 	// err = s.importMalwareIntelToNotionDB(w, r)
 	// if err != nil {
+	// s.logger.Error(err)
 	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	// }
 
