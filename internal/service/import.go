@@ -81,7 +81,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		return err
 	}
 
-	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())[0:10]
+	attackPatterns := s.repo.ListAttackPatterns(s.repo.ListCollection())
 	for i, attackPattern := range attackPatterns {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
