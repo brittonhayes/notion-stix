@@ -45,25 +45,24 @@ func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (*authent
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
 	// TODO this takes an insane amount of time. Need to implement a task queue or something.
 	// Potentially also offer different import options for a subset of MITRE ATT&CK
-	// Maybe use this with redis https://github.com/hibiken/asynq
 	// Also maybe worth considering SSE for the client to listen for updates
-	err := s.importAttackPatternsIntelToNotionDB(w, r)
+	err := s.importCampaignsIntelToNotionDB(w, r)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
-	// err = s.importCampaignsIntelToNotionDB(w, r)
-	// if err != nil {
-	// s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
+	err = s.importAttackPatternsIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
 
-	// err = s.importMalwareIntelToNotionDB(w, r)
-	// if err != nil {
-	// s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
+	err = s.importMalwareIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 	return nil

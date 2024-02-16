@@ -37,6 +37,8 @@ func WithCollection(collection *stix2.Collection) Option {
 	}
 }
 
+// TODO: Write some unit tests for these internal functions
+
 // limitString truncates a string to a specified limit.
 func limitString(s string, limit int) string {
 	if len(s) <= limit {
@@ -76,4 +78,12 @@ func capabilitiesToBlocks(capabilities []string) []notion.Block {
 	}
 
 	return blocks
+}
+
+func killchainPhaseToSelect(phases []*stix2.KillChainPhase) []notion.SelectOptions {
+	phaseOptions := []notion.SelectOptions{}
+	for _, phase := range phases[0:] {
+		phaseOptions = append(phaseOptions, notion.SelectOptions{Name: phase.Phase})
+	}
+	return phaseOptions
 }

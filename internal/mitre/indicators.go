@@ -7,30 +7,14 @@ import (
 	"github.com/dstotijn/go-notion"
 )
 
-// INDICATOR_DATABASE_TITLE is the title of the indicators database.
-const INDICATOR_DATABASE_TITLE = "Indicators"
-
-// INDICATOR_DATABASE_ICON is the icon of the indicators database.
-const INDICATOR_DATABASE_ICON = "🔍"
-
-// INDICATOR_PAGE_ICON is the icon of the indicator page.
-const INDICATOR_PAGE_ICON = "🔍"
-
-// INDICATOR_PROPERTIES defines the properties of the indicators database.
-var INDICATOR_PROPERTIES = notion.DatabaseProperties{
-	"Name": {
-		Type:  notion.DBPropTypeTitle,
-		Title: &notion.EmptyMetadata{},
-	},
-	"Description": {
-		Type:     notion.DBPropTypeRichText,
-		RichText: &notion.EmptyMetadata{},
-	},
-	"Created": {
-		Type: notion.DBPropTypeDate,
-		Date: &notion.EmptyMetadata{},
-	},
-}
+const (
+	// indicatorPageIcon is the icon of the indicator page.
+	indicatorPageIcon = "🔍"
+	// indicatorDatabaseTitle is the title of the indicators database.
+	indicatorDatabaseTitle = "Indicators"
+	// indicatorDatabaseIcon is the icon of the indicators database.
+	indicatorDatabaseIcon = "🔍"
+)
 
 // ListIndicators returns all the indicators in the MITRE collection.
 func (m *MITRE) ListIndicators() []*stix2.Indicator {
@@ -46,15 +30,28 @@ func (m *MITRE) indicatorByID(id string) *stix2.Indicator {
 func (m *MITRE) CreateIndicatorsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error) {
 	params := notion.CreateDatabaseParams{
 		ParentPageID: parentPageID,
-		Title:        []notion.RichText{{Text: &notion.Text{Content: INDICATOR_DATABASE_TITLE}}},
-		Properties:   INDICATOR_PROPERTIES,
+		Title:        []notion.RichText{{Text: &notion.Text{Content: indicatorDatabaseTitle}}},
+		Description:  []notion.RichText{{Text: &notion.Text{Content: "A database of MITRE ATT&CK indicators of compromise."}}},
+		Properties: notion.DatabaseProperties{
+			"Name": {
+				Type:  notion.DBPropTypeTitle,
+				Title: &notion.EmptyMetadata{},
+			},
+			"Description": {
+				Type:     notion.DBPropTypeRichText,
+				RichText: &notion.EmptyMetadata{},
+			},
+			"Created": {
+				Type: notion.DBPropTypeDate,
+				Date: &notion.EmptyMetadata{},
+			}},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
-			Emoji: notion.StringPtr(INDICATOR_DATABASE_ICON),
+			Emoji: notion.StringPtr(indicatorDatabaseIcon),
 		},
 	}
 
-	m.Logger.Info("Creating Notion database", "title", INDICATOR_DATABASE_TITLE)
+	m.Logger.Info("Creating Notion database", "title", indicatorDatabaseTitle)
 	return client.CreateDatabase(ctx, params)
 }
 
@@ -80,23 +77,23 @@ func (m *MITRE) CreateIndicatorPage(ctx context.Context, client *notion.Client, 
 		Children:   blocks,
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
-			Emoji: notion.StringPtr(INDICATOR_PAGE_ICON),
+			Emoji: notion.StringPtr(indicatorPageIcon),
 		},
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
-				Type: INDICATOR_PROPERTIES["Name"].Type,
+				Type: notion.DBPropTypeTitle,
 				Title: []notion.RichText{
 					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: indicator.Name}},
 				},
 			},
 			"Description": notion.DatabasePageProperty{
-				Type: INDICATOR_PROPERTIES["Description"].Type,
+				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
 					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: indicator.Description}},
 				},
 			},
 			"Created": notion.DatabasePageProperty{
-				Type: INDICATOR_PROPERTIES["Created"].Type,
+				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
 					Start: notion.NewDateTime(indicator.Created.Time, false),
 				},

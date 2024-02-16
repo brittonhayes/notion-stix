@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	// CAMPAIGNS_DATABASE_TITLE is the title of the campaigns database.
-	CAMPAIGNS_DATABASE_TITLE = "Campaigns"
-	// CAMPAIGNS_DATABASE_ICON is the icon of the campaigns database.
-	CAMPAIGNS_DATABASE_ICON = "🗺️"
-	// CAMPAIGNS_PAGE_ICON is the icon of the campaign page.
-	CAMPAIGNS_PAGE_ICON = "🗺️"
+	// campaignsDatabaseTitle is the title of the campaigns database.
+	campaignsDatabaseTitle = "MITRE ATT&CK - Campaigns"
+	// campaignsDatabaseIcon is the icon of the campaigns database.
+	campaignsDatabaseIcon = "🗺️"
+	// campaignsPageIcon is the icon of the campaign page.
+	campaignsPageIcon = "🗺️"
 )
 
 // ListCampaigns returns all campaigns in the collection.
@@ -25,7 +25,8 @@ func (m *MITRE) ListCampaigns() []*stix2.Campaign {
 func (m *MITRE) CreateCampaignsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error) {
 	params := notion.CreateDatabaseParams{
 		ParentPageID: parentPageID,
-		Title:        []notion.RichText{{Text: &notion.Text{Content: CAMPAIGNS_DATABASE_TITLE}}},
+		Title:        []notion.RichText{{Text: &notion.Text{Content: campaignsDatabaseTitle}}},
+		Description:  []notion.RichText{{Text: &notion.Text{Content: "A database of MITRE ATT&CK campaigns."}}},
 		Properties: notion.DatabaseProperties{
 			"Name": {
 				Type:  notion.DBPropTypeTitle,
@@ -50,11 +51,11 @@ func (m *MITRE) CreateCampaignsDatabase(ctx context.Context, client *notion.Clie
 		},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
-			Emoji: notion.StringPtr(CAMPAIGNS_DATABASE_ICON),
+			Emoji: notion.StringPtr(campaignsDatabaseIcon),
 		},
 	}
 
-	m.Logger.Info("Creating Notion database", "title", CAMPAIGNS_DATABASE_TITLE)
+	m.Logger.Info("Creating Notion database", "title", campaignsDatabaseTitle)
 	return client.CreateDatabase(ctx, params)
 }
 
@@ -75,7 +76,7 @@ func (m *MITRE) CreateCampaignPage(ctx context.Context, client *notion.Client, d
 		ParentType: notion.ParentTypeDatabase,
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
-			Emoji: notion.StringPtr(CAMPAIGNS_PAGE_ICON),
+			Emoji: notion.StringPtr(campaignsPageIcon),
 		},
 		Title: []notion.RichText{
 			{Text: &notion.Text{Content: campaign.Name}},
