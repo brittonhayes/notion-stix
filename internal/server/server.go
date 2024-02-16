@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	notionstix "github.com/brittonhayes/notion-stix"
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"github.com/unrolled/secure"
 )
 
@@ -62,6 +64,17 @@ func New(ctx context.Context, config *Config) *Server {
 	})
 
 	r.Use(middleware.Heartbeat("/healthz"))
+
+	// TODO: Dial in this rate limiter so it isn't so strict
+	r.Use(httprate.Limit(10, 1*time.Minute,
+		httprate.WithKeyFuncs(httprate.KeyByIP, httprate.KeyByEndpoint, func(r *http.Request) (string, error) {
+			cookie, err := r.Cookie("bot_id")
+			if err != nil {
+				return "", nil
+			}
+			return cookie.Value, nil
+		}),
+	))
 	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RedirectSlashes)
