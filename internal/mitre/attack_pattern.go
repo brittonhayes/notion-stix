@@ -105,7 +105,7 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 				},
 			},
 			"Killchain Phase": notion.DatabasePageProperty{
-				Type:        notion.DBPropTypeSelect,
+				Type:        notion.DBPropTypeMultiSelect,
 				MultiSelect: phaseOptions,
 			},
 			"Created": notion.DatabasePageProperty{
