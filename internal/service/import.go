@@ -52,6 +52,12 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
+	err = s.importGroupsIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
 	err = s.importAttackPatternsIntelToNotionDB(w, r)
 	if err != nil {
 		s.logger.Error(err)
@@ -93,6 +99,37 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 
 		if i%10 == 0 || i == len(attackPatterns)-1 {
 			s.logger.Info("imported attack patterns intel", "done", i, "total", len(attackPatterns))
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
+
+	ctx := context.Background()
+	auth, err := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	db, err := s.repo.CreateGroupsDatabase(ctx, auth.client, auth.pageID)
+	if err != nil {
+		return err
+	}
+
+	groups := s.repo.ListGroups(s.repo.ListCollection())
+	for i, group := range groups {
+		r := s.limiter.Reserve()
+		time.Sleep(r.Delay())
+
+		_, err = s.repo.CreateGroupPage(ctx, auth.client, db.ID, group)
+		if err != nil {
+			return err
+		}
+
+		if i%10 == 0 || i == len(groups)-1 {
+			s.logger.Info("imported groups intel", "done", i, "total", len(groups))
 		}
 	}
 

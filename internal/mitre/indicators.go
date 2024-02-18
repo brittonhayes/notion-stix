@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	// indicatorPageIcon is the icon of the indicator page.
-	indicatorPageIcon = "🔍"
 	// indicatorDatabaseTitle is the title of the indicators database.
-	indicatorDatabaseTitle = "Indicators"
+	indicatorDatabaseTitle = "MITRE ATT&CK - Indicators"
 	// indicatorDatabaseIcon is the icon of the indicators database.
 	indicatorDatabaseIcon = "🔍"
+	// indicatorPageIcon is the icon of the indicator page.
+	indicatorPageIcon = "🔍"
 )
 
 // ListIndicators returns all the indicators in the MITRE collection.

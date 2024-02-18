@@ -2,6 +2,7 @@ package mitre
 
 import (
 	"context"
+	"time"
 
 	"github.com/TcM1911/stix2"
 	"github.com/dstotijn/go-notion"
@@ -44,7 +45,15 @@ func (m *MITRE) CreateCampaignsDatabase(ctx context.Context, client *notion.Clie
 				Type: notion.DBPropTypeDate,
 				Date: &notion.EmptyMetadata{},
 			},
+			"Last Seen": {
+				Type: notion.DBPropTypeDate,
+				Date: &notion.EmptyMetadata{},
+			},
 			"Created": {
+				Type: notion.DBPropTypeDate,
+				Date: &notion.EmptyMetadata{},
+			},
+			"Imported": {
 				Type: notion.DBPropTypeDate,
 				Date: &notion.EmptyMetadata{},
 			},
@@ -107,10 +116,22 @@ func (m *MITRE) CreateCampaignPage(ctx context.Context, client *notion.Client, d
 					Start: notion.NewDateTime(campaign.FirstSeen.Time, false),
 				},
 			},
+			"Last Seen": notion.DatabasePageProperty{
+				Type: notion.DBPropTypeDate,
+				Date: &notion.Date{
+					Start: notion.NewDateTime(campaign.LastSeen.Time, false),
+				},
+			},
 			"Created": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
 					Start: notion.NewDateTime(campaign.Created.Time, false),
+				},
+			},
+			"Imported": notion.DatabasePageProperty{
+				Type: notion.DBPropTypeDate,
+				Date: &notion.Date{
+					Start: notion.NewDateTime(time.Now(), false),
 				},
 			},
 		},

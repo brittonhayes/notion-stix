@@ -16,6 +16,7 @@ type Repository interface {
 	AttackPatternRepository
 	CampaignRepository
 	MalwareRepository
+	GroupRepository
 }
 
 // Store is the interface that defines the methods for a key-value store.
@@ -32,6 +33,15 @@ type AttackPatternRepository interface {
 	CreateAttackPatternsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error)
 	// CreateAttackPatternPage creates a new Notion page for a specific AttackPattern.
 	CreateAttackPatternPage(ctx context.Context, client *notion.Client, databaseID string, attackPattern *stix2.AttackPattern) (notion.Page, error)
+}
+
+type GroupRepository interface {
+	// ListGroups returns a slice of Group objects.
+	ListGroups(collection *stix2.Collection) []*stix2.IntrusionSet
+	// CreateGroupsDatabase creates a new Notion database for Groups.
+	CreateGroupsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error)
+	// CreateGroupPage creates a new Notion page for a specific Group.
+	CreateGroupPage(ctx context.Context, client *notion.Client, databaseID string, group *stix2.IntrusionSet) (notion.Page, error)
 }
 
 type CampaignRepository interface {
