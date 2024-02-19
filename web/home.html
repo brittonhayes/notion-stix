@@ -1,62 +1,59 @@
 {{ define "home" }}
-<!DOCTYPE html>
+<!doctype html>
 <html>
-{{ template "head" }}
+  {{ template "head" }}
 
-<body>
+  <body>
     <section class="h-screen">
-        <div class="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:h-screen lg:items-center">
-            <div class="mx-auto max-w-3xl text-center">
-                <h1 class="title font-serif text-7xl text-white font-bold sm:text-8xl">
-                    Notion STIX
-                </h1>
-                <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">
-                    Integrate Threat intelligence into your Notion workspace
-                </p>
-                {{ if .Authenticated }}
-                <div class="my-6 flex flex-row justify-center">
-                    <p class="text-white px-1">
-                        <span class="font-bold">Status:</span>&nbsp;Connected
-                    </p>
-                    <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
-                </div>
-                {{ end }}
-                <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
-                    {{ if .Authenticated }}
-                    <button
-                        class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
-                        hx-get="/api/import">
-                        <span class="flex">
-                            <span class="pr-2">Upload MITRE ATT&CK</span>
-                            <i data-feather="arrow-up-circle"></i>
-                        </span>
-                    </button>
-                    <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
-                        href="{{.IntegrationURL}}"
-                        target="_blank">
-                        <span class="flex">
-                            <span>Reset</span>
-                        </span>
-                    </a>
-                    {{ end }}
-                    {{ if not .Authenticated }}
-                    <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
-                        href="{{.IntegrationURL}}"
-                        target="_blank">
-                        <span class="flex">
-                            <span class="pr-3">Connect to Notion</span>
-                            <i class="text-black/80" data-feather="external-link"></i>
-                        </span>
-                    </a>
-                    {{ end }}
-                </div>
-                {{ template "footer" }}
-            </div>
+      <div class="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:h-screen lg:items-center">
+        <div class="mx-auto max-w-3xl text-center">
+          <h1 class="title font-serif text-7xl text-white font-bold sm:text-8xl">Notion STIX</h1>
+          <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">Integrate Threat intelligence into your Notion workspace</p>
+          {{ if .Authenticated }}
+          <div class="my-6 flex flex-row justify-center">
+            <p class="text-white px-1"><span class="font-bold">Status:</span>&nbsp;Connected</p>
+            <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
+          </div>
+          {{ end }}
+          <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
+            {{ if .Authenticated }}
+            <button
+              class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+              hx-get="/api/import"
+            >
+              <span class="flex">
+                <span class="pr-2">Upload MITRE ATT&CK</span>
+                <i data-feather="arrow-up-circle"></i>
+              </span>
+            </button>
+            <a
+              class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+              href="{{.IntegrationURL}}"
+              target="_blank"
+            >
+              <span class="flex">
+                <span>Reset</span>
+              </span>
+            </a>
+            {{ end }} {{ if not .Authenticated }}
+            <a
+              class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+              href="{{.IntegrationURL}}"
+              target="_blank"
+            >
+              <span class="flex">
+                <span class="pr-3">Connect to Notion</span>
+                <i class="text-black/80" data-feather="external-link"></i>
+              </span>
+            </a>
+            {{ end }}
+          </div>
+          {{ template "footer" }}
         </div>
+      </div>
     </section>
     {{ template "scripts" }}
-</body>
-
+  </body>
 </html>
 
 {{ end }}
