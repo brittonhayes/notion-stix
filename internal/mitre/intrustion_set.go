@@ -43,6 +43,10 @@ func (m *MITRE) CreateGroupsDatabase(ctx context.Context, client *notion.Client,
 				Type: notion.DBPropTypeDate,
 				Date: &notion.EmptyMetadata{},
 			},
+			"Imported": {
+				Type: notion.DBPropTypeDate,
+				Date: &notion.EmptyMetadata{},
+			},
 		},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
