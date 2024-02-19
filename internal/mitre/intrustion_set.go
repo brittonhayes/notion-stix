@@ -11,10 +11,8 @@ import (
 const (
 	// groupDatabaseTitle is the title of the groups database.
 	groupDatabaseTitle = "MITRE ATT&CK - Groups"
-	// groupDatabaseIcon is the icon of the groups database.
-	groupDatabaseIcon = "️👥"
-	// groupPageIcon is the icon of the group page.
-	groupPageIcon = "👥"
+	groupDatabaseIcon  = "📁"
+	groupPageIcon      = "📁"
 )
 
 // Listgroups returns all the groups in the MITRE collection.
@@ -44,7 +42,8 @@ func (m *MITRE) CreateGroupsDatabase(ctx context.Context, client *notion.Client,
 			"Created": {
 				Type: notion.DBPropTypeDate,
 				Date: &notion.EmptyMetadata{},
-			}},
+			},
+		},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
 			Emoji: notion.StringPtr(groupDatabaseIcon),
@@ -71,43 +70,19 @@ func (m *MITRE) CreateGroupPage(ctx context.Context, client *notion.Client, data
 		ParentType: notion.ParentTypeDatabase,
 		ParentID:   databaseID,
 		Children:   blocks,
-		Icon: &notion.Icon{
-			Type:  notion.IconTypeEmoji,
-			Emoji: notion.StringPtr(groupPageIcon),
-		},
+		Icon:       &notion.Icon{Type: notion.IconTypeEmoji, Emoji: notion.StringPtr(groupPageIcon)},
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
-				Type: notion.DBPropTypeTitle,
-				Title: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.Name}},
-				},
+				Type:  notion.DBPropTypeTitle,
+				Title: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.Name}}},
 			},
-			"Description": notion.DatabasePageProperty{
-				Type: notion.DBPropTypeRichText,
-				RichText: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.Description}},
-				},
-			},
-			"Motivation": notion.DatabasePageProperty{
-				Type: notion.DBPropTypeRichText,
-				RichText: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.PrimaryMotivation}},
-				},
-			},
-			"Created": notion.DatabasePageProperty{
-				Type: notion.DBPropTypeDate,
-				Date: &notion.Date{
-					Start: notion.NewDateTime(group.Created.Time, false),
-				},
-			},
-			"Imported": notion.DatabasePageProperty{
-				Type: notion.DBPropTypeDate,
-				Date: &notion.Date{
-					Start: notion.NewDateTime(time.Now(), false),
-				},
-			},
+			"Description": notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.Description}}}},
+			"Motivation":  notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.PrimaryMotivation}}}},
+			"Created":     notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(group.Created.Time, false)}},
+			"Imported":    notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(time.Now(), false)}},
 		},
 	}
+
 	m.Logger.Debug("Creating page", "name", group.Name, "type", "group")
 	return client.CreatePage(ctx, properties)
 }
