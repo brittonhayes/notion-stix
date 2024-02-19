@@ -57,25 +57,24 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
-
-	err = s.importAttackPatternsIntelToNotionDB(w, r)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
-
-	err = s.importMalwareIntelToNotionDB(w, r)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
-
+	//
+	// err = s.importAttackPatternsIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	s.logger.Error(err)
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
+	//
+	// err = s.importMalwareIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	s.logger.Error(err)
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
+	//
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 	return nil
 }
 
 func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
-
 	ctx := context.Background()
 	auth, err := s.authenticate(w, r)
 	if err != nil {
@@ -106,7 +105,6 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 }
 
 func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
-
 	ctx := context.Background()
 	auth, err := s.authenticate(w, r)
 	if err != nil {
