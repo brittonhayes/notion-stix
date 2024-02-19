@@ -57,19 +57,19 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
-	//
-	// err = s.importAttackPatternsIntelToNotionDB(w, r)
-	// if err != nil {
-	// 	s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
-	//
-	// err = s.importMalwareIntelToNotionDB(w, r)
-	// if err != nil {
-	// 	s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
-	//
+
+	err = s.importAttackPatternsIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
+	err = s.importMalwareIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 	return nil
 }
