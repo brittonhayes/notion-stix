@@ -48,7 +48,7 @@ func New(ctx context.Context, config *Config) *Server {
 	// that server names match. We don't know how this thing will be run.
 	swagger.Servers = nil
 
-	logger := httplog.NewLogger("notion-stix", httplog.Options{
+	logger := httplog.NewLogger(config.ServiceName, httplog.Options{
 		// JSON:             true,
 		LogLevel:         slog.LevelInfo,
 		MessageFieldName: "message",
@@ -69,10 +69,16 @@ func New(ctx context.Context, config *Config) *Server {
 	// 		cspbuilder.ScriptSrc:  {"self", "https://cdn.tailwindcss.com", "https://unpkg.com"},
 	// 	},
 	// }
+	allowedHosts := []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"}
+	if config.Environment == "development" {
+		allowedHosts = []string{}
+	}
+
+	fmt.Println(config.Environment)
+
 	secureMiddleware := secure.New(secure.Options{
-		AllowedHosts:       []string{"railway.app", "notion-stix.up.railway.app", "www.notion.so", "api.notion.com"},
-		ContentTypeNosniff: true,
-		BrowserXssFilter:   true,
+		AllowedHosts:       allowedHosts,
+		ContentTypeNosniff: true, BrowserXssFilter: true,
 		// ContentSecurityPolicy: csp.MustBuild(),
 	})
 

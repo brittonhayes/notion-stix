@@ -14,6 +14,10 @@ type HomeData struct {
 	IntegrationURL string
 }
 
+func (s *Service) GetChatroom(w http.ResponseWriter, r *http.Request) *api.Response {
+	return &api.Response{}
+}
+
 func (s *Service) GetHomePage(w http.ResponseWriter, r *http.Request) *api.Response {
 	tmpl := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/*.html"))
 
