@@ -44,10 +44,12 @@ func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (*authent
 }
 
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
-	// TODO this takes an insane amount of time. Need to implement a task queue or something.
-	// Potentially also offer different import options for a subset of MITRE ATT&CK
-	// Also maybe worth considering SSE for the client to listen for updates
-	err := s.importCampaignsIntelToNotionDB(w, r)
+	botID, err := cookies.Read(r, "bot_id")
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
+	}
+
+	err = s.importCampaignsIntelToNotionDB(w, r)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
@@ -71,12 +73,21 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 
+	go func() {
+		s.updates[botID] <- "All records imported."
+	}()
+
 	return nil
 }
 
 func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
 	auth, err := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	botID, err := cookies.Read(r, "bot_id")
 	if err != nil {
 		return err
 	}
@@ -96,10 +107,11 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 			return err
 		}
 
+		go func() {
+			s.updates[botID] <- fmt.Sprintf("Imported %d of %d attack pattern intel records", i, len(attackPatterns))
+		}()
+
 		if i%10 == 0 || i == len(attackPatterns)-1 {
-			go func() {
-				s.updates <- fmt.Sprintf("Imported %d of %d attack pattern intel records", i, len(attackPatterns))
-			}()
 			s.logger.Info("imported attack patterns intel", "done", i, "total", len(attackPatterns))
 		}
 	}
@@ -110,6 +122,11 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
 	auth, err := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	botID, err := cookies.Read(r, "bot_id")
 	if err != nil {
 		return err
 	}
@@ -129,10 +146,11 @@ func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
+		go func() {
+			s.updates[botID] <- fmt.Sprintf("Imported %d of %d APT intel records", i, len(groups))
+		}()
+
 		if i%10 == 0 || i == len(groups)-1 {
-			go func() {
-				s.updates <- fmt.Sprintf("Imported %d of %d APT intel records", i, len(groups))
-			}()
 			s.logger.Info("imported groups intel", "done", i, "total", len(groups))
 		}
 	}
@@ -144,6 +162,11 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 	ctx := context.Background()
 
 	auth, err := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	botID, err := cookies.Read(r, "bot_id")
 	if err != nil {
 		return err
 	}
@@ -163,10 +186,11 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 			return err
 		}
 
+		go func() {
+			s.updates[botID] <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
+		}()
+
 		if i%10 == 0 || i == len(campaigns)-1 {
-			go func() {
-				s.updates <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
-			}()
 			s.logger.Info("imported campaign intel", "done", i, "total", len(campaigns))
 		}
 	}
@@ -177,6 +201,11 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 	ctx := context.Background()
 
 	auth, err := s.authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	botID, err := cookies.Read(r, "bot_id")
 	if err != nil {
 		return err
 	}
@@ -197,7 +226,7 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 		}
 
 		go func() {
-			s.updates <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
+			s.updates[botID] <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
 		}()
 
 		if i%10 == 0 || i == len(malware)-1 {

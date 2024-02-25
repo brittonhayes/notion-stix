@@ -30,7 +30,7 @@ type Service struct {
 	repo    notionstix.Repository
 	store   notionstix.Store
 	limiter *rate.Limiter
-	updates chan string
+	updates map[string](chan string)
 
 	client    *http.Client
 	logger    *log.Logger
@@ -51,7 +51,7 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	templates := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/*.html"))
 	return &Service{
 		repo:              repo,
-		updates:           make(chan string),
+		updates:           make(map[string](chan string)),
 		logger:            log.New(os.Stdout),
 		templates:         templates,
 		client:            retryClient.StandardClient(),

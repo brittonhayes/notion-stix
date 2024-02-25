@@ -23,7 +23,13 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 	_, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	for update := range s.updates {
+	// TODO: should potentially implement read encrypted here
+	botID, err := cookies.Read(r, "bot_id")
+	if err != nil {
+		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
+	}
+
+	for update := range s.updates[botID] {
 		fmt.Fprintf(w, "data: %s \n\n", update)
 		w.(http.Flusher).Flush()
 		time.Sleep(1 * time.Second)
