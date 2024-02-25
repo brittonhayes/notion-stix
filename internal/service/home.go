@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/brittonhayes/notion-stix/internal/cookies"
@@ -19,23 +20,16 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	ctx, cancel := context.WithCancel(r.Context())
+	_, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	go func() {
-		for update := range s.updates {
-			fmt.Fprintf(w, "data: %s\n\n", update)
-			w.(http.Flusher).Flush()
-		}
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-s.updates:
-		}
+	for update := range s.updates {
+		fmt.Fprintf(w, "data: %s \n\n", update)
+		w.(http.Flusher).Flush()
+		time.Sleep(1 * time.Second)
 	}
+
+	return nil
 }
 
 func (s *Service) GetHomePage(w http.ResponseWriter, r *http.Request) *api.Response {
