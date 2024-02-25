@@ -75,11 +75,10 @@ func New(ctx context.Context, config *Config) *Server {
 		allowedHosts = []string{}
 	}
 
-	fmt.Println(config.Environment)
-
 	secureMiddleware := secure.New(secure.Options{
 		AllowedHosts:       allowedHosts,
-		ContentTypeNosniff: true, BrowserXssFilter: true,
+		ContentTypeNosniff: true,
+		BrowserXssFilter:   true,
 		// ContentSecurityPolicy: csp.MustBuild(),
 	})
 

@@ -2,44 +2,45 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/brittonhayes/notion-stix/internal/cookies"
+	"github.com/brittonhayes/notion-stix/internal/kv"
 	"github.com/dstotijn/go-notion"
 )
 
-type authenticationResponse struct {
+type session struct {
 	client *notion.Client
 	pageID string
 }
 
-func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (*authenticationResponse, error) {
+func (s *Service) newSession(w http.ResponseWriter, r *http.Request) (*session, error) {
 	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
 
-	pageID, err := cookies.ReadEncrypted(r, "page_id", []byte(s.cookieSecret))
+	value, err := s.store.Get(botID)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
 
-	token, err := s.store.Get(botID)
+	var rec connectionRecord
+	err = json.Unmarshal(value, &rec)
 	if err != nil {
-		s.logger.Error(err)
 		return nil, err
 	}
 
-	client := notion.NewClient(token, notion.WithHTTPClient(s.client))
-
-	return &authenticationResponse{
-		pageID: pageID,
+	client := notion.NewClient(rec.Token, notion.WithHTTPClient(s.client))
+	return &session{
 		client: client,
+		pageID: rec.ParentPageID,
 	}, nil
 }
 
@@ -54,24 +55,24 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
-
-	err = s.importGroupsIntelToNotionDB(w, r)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
-
-	err = s.importAttackPatternsIntelToNotionDB(w, r)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
-
-	err = s.importMalwareIntelToNotionDB(w, r)
-	if err != nil {
-		s.logger.Error(err)
-		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	}
+	//
+	// err = s.importGroupsIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	s.logger.Error(err)
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
+	//
+	// err = s.importAttackPatternsIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	s.logger.Error(err)
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
+	//
+	// err = s.importMalwareIntelToNotionDB(w, r)
+	// if err != nil {
+	// 	s.logger.Error(err)
+	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	// }
 
 	go func() {
 		s.updates[botID] <- "All records imported."
@@ -82,17 +83,17 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 
 func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
-	auth, err := s.authenticate(w, r)
+	sess, err := s.newSession(w, r)
 	if err != nil {
 		return err
 	}
 
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
 
-	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, auth.client, auth.pageID)
+	attackPatternDB, err := s.repo.CreateAttackPatternsDatabase(ctx, sess.client, sess.pageID)
 	if err != nil {
 		return err
 	}
@@ -102,7 +103,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err = s.repo.CreateAttackPatternPage(ctx, auth.client, attackPatternDB.ID, attackPattern)
+		_, err := s.repo.CreateAttackPatternPage(ctx, sess.client, attackPatternDB.ID, attackPattern)
 		if err != nil {
 			return err
 		}
@@ -121,17 +122,17 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 
 func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
-	auth, err := s.authenticate(w, r)
+	sess, err := s.newSession(w, r)
 	if err != nil {
 		return err
 	}
 
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
 
-	db, err := s.repo.CreateGroupsDatabase(ctx, auth.client, auth.pageID)
+	db, err := s.repo.CreateGroupsDatabase(ctx, sess.client, sess.pageID)
 	if err != nil {
 		return err
 	}
@@ -141,7 +142,7 @@ func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Req
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err = s.repo.CreateGroupPage(ctx, auth.client, db.ID, group)
+		_, err = s.repo.CreateGroupPage(ctx, sess.client, db.ID, group)
 		if err != nil {
 			return err
 		}
@@ -161,18 +162,18 @@ func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Req
 func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
 
-	auth, err := s.authenticate(w, r)
+	sess, err := s.newSession(w, r)
 	if err != nil {
 		return err
 	}
 
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
 
 	campaigns := s.repo.ListCampaigns()
-	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, auth.client, auth.pageID)
+	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, sess.client, sess.pageID)
 	if err != nil {
 		return err
 	}
@@ -181,9 +182,24 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err := s.repo.CreateCampaignPage(ctx, auth.client, campaignDB, campaign)
-		if err != nil {
-			return err
+		_, err := s.store.Get(fmt.Sprintf("%s-%s", botID, campaign.ID))
+		if err == kv.ErrKeyNotFound {
+			// Create the campaign page and store the result in the KV store
+			// if it doesn't exist
+			page, err := s.repo.CreateCampaignPage(ctx, sess.client, campaignDB, campaign)
+			if err != nil {
+				return err
+			}
+
+			b, err := json.Marshal(page)
+			if err != nil {
+				return err
+			}
+
+			err = s.store.Set(fmt.Sprintf("%s-%s", botID, campaign.ID), b)
+			if err != nil {
+				return err
+			}
 		}
 
 		go func() {
@@ -200,18 +216,18 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
 
-	auth, err := s.authenticate(w, r)
+	sess, err := s.newSession(w, r)
 	if err != nil {
 		return err
 	}
 
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
 
 	malware := s.repo.ListMalware()
-	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, auth.client, auth.pageID)
+	malwareDB, err := s.repo.CreateMalwareDatabase(ctx, sess.client, sess.pageID)
 	if err != nil {
 		return err
 	}
@@ -220,7 +236,7 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err = s.repo.CreateMalwarePage(ctx, auth.client, malwareDB, mw)
+		_, err = s.repo.CreateMalwarePage(ctx, sess.client, malwareDB, mw)
 		if err != nil {
 			return err
 		}

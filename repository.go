@@ -21,8 +21,8 @@ type Repository interface {
 
 // Store is the interface that defines the methods for a key-value store.
 type Store interface {
-	Get(key string) (string, error)
-	Set(key, value string) error
+	Get(key string) ([]byte, error)
+	Set(key string, value []byte) error
 	Cleanup()
 }
 

@@ -16,8 +16,12 @@ var (
 	ErrInvalidValue = "invalid cookie value"
 )
 
+type connectionRecord struct {
+	Token        string `json:"token"`
+	ParentPageID string `json:"parent_page_id"`
+}
+
 // Connect handles the connection request from the client.
-// It receives the authorization code from the client and exchanges it for an access token from the Notion API.
 // The access token is then used to redirect the client to the Notion URL.
 // If any errors occur during the process, appropriate error responses are returned.
 func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.ConnectParams) *api.Response {
@@ -70,14 +74,19 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	}
 
 	token := body.AccessToken
-
 	if token == "" {
 		s.logger.Error("No token received from Notion API")
 		return api.ConnectJSON500Response(api.Error{Message: ErrMissingToken, Code: http.StatusBadRequest})
 	}
 
+	b, err = json.Marshal(connectionRecord{Token: token, ParentPageID: body.DuplicatedTemplateID})
+	if err != nil {
+		s.logger.Error(err)
+		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
+	}
+
 	s.logger.Info("Token received from Notion API")
-	err = s.store.Set(body.BotID, token)
+	err = s.store.Set(body.BotID, b)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
@@ -91,14 +100,6 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	}
-	pageCookie := http.Cookie{
-		Name:     "page_id",
-		Value:    body.DuplicatedTemplateID,
-		Secure:   true,
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-	}
 
 	err = cookies.WriteEncrypted(w, botCookie, []byte(s.cookieSecret))
 	if err != nil {
@@ -106,16 +107,11 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
 	}
 
-	err = cookies.WriteEncrypted(w, pageCookie, []byte(s.cookieSecret))
-	if err != nil {
-		s.logger.Error(err)
-		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
-	}
+	go func() {
+		s.updates[body.BotID] <- "Connected"
+	}()
 
-	// TODO store the status of the import in the kv store so we can display it to the user
-	// Could maybe pair this with SSE for the client to listen for updates
-
+	// TODO: store the status of the import in the kv store so we can display it to the user
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
-
 	return nil
 }

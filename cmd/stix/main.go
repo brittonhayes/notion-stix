@@ -133,6 +133,9 @@ func main() {
 				Environment: c.String("environment"),
 				Port:        c.Int("port"),
 			}
+
+			go store.Cleanup()
+
 			s := server.New(c.Context, config)
 			logger.Info("Starting server", "port", config.Port, "service", config.ServiceName)
 			return s.ListenAndServe()
