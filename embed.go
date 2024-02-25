@@ -2,8 +2,6 @@ package notionstix
 
 import "embed"
 
-// TODO: make embedding optional
-
 //go:embed hack/*.json
 var FS embed.FS
 

@@ -111,7 +111,6 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		s.updates[body.BotID] <- "Connected"
 	}()
 
-	// TODO: store the status of the import in the kv store so we can display it to the user
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 	return nil
 }

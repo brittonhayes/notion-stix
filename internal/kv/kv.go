@@ -78,6 +78,7 @@ func (p *PersistentKV) Get(key string) ([]byte, error) {
 
 // Set sets the value associated with the given key in the persistent store.
 func (p *PersistentKV) Set(key string, value []byte) error {
+	// TODO: Implement TTL option for keys
 	return p.db.Update(func(txn *badger.Txn) error {
 		return txn.Set([]byte(key), value)
 	})
