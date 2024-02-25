@@ -173,7 +173,25 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 	}
 
 	campaigns := s.repo.ListCampaigns()
+
+	// Check if the campaign database already exists in the kv store
+	// if it does, return early
+	_, err = s.store.Get(fmt.Sprintf("%s-%s-%s", botID, sess.pageID, "campaigns"))
+	if err == nil {
+		return nil
+	}
+
 	campaignDB, err := s.repo.CreateCampaignsDatabase(ctx, sess.client, sess.pageID)
+	if err != nil {
+		return err
+	}
+
+	campaignDBJSON, err := json.Marshal(campaignDB)
+	if err != nil {
+		return err
+	}
+
+	err = s.store.Set(fmt.Sprintf("%s-%s-%s", botID, sess.pageID, "campaigns"), campaignDBJSON)
 	if err != nil {
 		return err
 	}

@@ -23,8 +23,7 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 	_, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	// TODO: should potentially implement read encrypted here
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
