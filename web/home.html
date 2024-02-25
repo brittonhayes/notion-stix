@@ -49,6 +49,7 @@
           <div class="my-6 flex flex-row justify-center">
             <p class="text-white px-1"><span class="font-bold">Status:</span>&nbsp;Connected</p>
             <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
+            <div hx-ext="sse" sse-connect="/api/events" sse-swap="message" class="text-white"></div>
           </div>
           {{ end }}
           <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
@@ -71,10 +72,7 @@
                 <span>Reset</span>
               </span>
             </a>
-            {{ end }} {{ if not .Authenticated }}
-            <div hx-ext="sse" sse-connect="/chatroom" sse-swap="message">
-              Contents of this box will be updated in real time with every SSE message received from the chatroom.
-            </div>
+            {{ end }}
             <a
               class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
               href="{{.IntegrationURL}}"
@@ -85,7 +83,6 @@
                 <i class="text-black/80" data-feather="external-link"></i>
               </span>
             </a>
-            {{ end }}
           </div>
           <div class="flex flex-row justify-center">
             <p class="block w-full mt-24 px-6 sm:w-2/3 italic md:text-lg text-md text-white/25 break-words">

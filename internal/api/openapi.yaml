@@ -1,8 +1,8 @@
-openapi: "3.1.0"
+openapi: '3.1.0'
 info:
   title: Notion Stix Integration
-  version: "1.0.0"
-  description: "This is the Notion STIX Integration API. It allows you to integrate  threat intelligence data into Notion."
+  version: '1.0.0'
+  description: 'This is the Notion STIX Integration API. It allows you to integrate  threat intelligence data into Notion.'
   contact:
     name: Notion STIX Integration
     url: https://www.notion.so
@@ -17,7 +17,7 @@ tags:
   - name: Web
   - name: Connect
   - name: Import
-paths: 
+paths:
   /:
     get:
       summary: Get homepage
@@ -26,7 +26,7 @@ paths:
       tags:
         - Web
       responses:
-        "200":
+        '200':
           description: OK
           content:
             text/html:
@@ -40,39 +40,67 @@ paths:
       tags:
         - Import
       responses:
-        "200":
+        '200':
           description: OK
-        "500":
+        '500':
           description: Internal Server Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/events:
+    get:
+      operationId: getEvents
+      produces: ['text/event-stream']
+      responses:
+        '200':
+          description: progress update events
+          # schema:
+          # type: object
+          # x-events:
+          #   added:
+          #     type: object
+          #     properties:
+          #       message:
+          #         type: string
+          #       createdAt:
+          #         type: string
+          #         format: date-time
+          #   updated:
+          #     type: object
+          #     properties:
+          #       previous:
+          #         type: string
+          #       newValue:
+          #         type: string
+          #       updatedAt:
+          #         type: string
+          #         format: date-time
   /auth/notion/callback:
     get:
       summary: Connect the Notion STIX Integration
       description: Connect the Notion STIX Integration to access your Notion workspace
-      operationId: connect 
+      operationId: connect
       parameters:
         - name: code
           in: query
           required: false
           schema:
             type: string
-          description: The temporary oauth grant code 
+          description: The temporary oauth grant code
         - name: error
           in: query
           required: false
           schema:
             type: string
           description: The error message
-          example: "access_denied"
+          example: 'access_denied'
       tags:
         - Connect
       responses:
-        "200":
+        '200':
           description: OK
-        "500":
+        '500':
           description: Internal Server Error
           content:
             application/json:
@@ -82,8 +110,8 @@ components:
   schemas:
     Error:
       required:
-      - code
-      - message
+        - code
+        - message
       type: object
       properties:
         code:

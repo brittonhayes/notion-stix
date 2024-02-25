@@ -1,6 +1,7 @@
 package service
 
 import (
+	"html/template"
 	"net/http"
 	"os"
 	"time"
@@ -29,9 +30,11 @@ type Service struct {
 	repo    notionstix.Repository
 	store   notionstix.Store
 	limiter *rate.Limiter
+	updates chan string
 
-	client *http.Client
-	logger *log.Logger
+	client    *http.Client
+	logger    *log.Logger
+	templates *template.Template
 
 	redirectURI       string
 	oauthClientID     string
@@ -45,9 +48,12 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	retryClient.RetryMax = 3
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.Logger = nil
+	templates := template.Must(template.ParseFS(notionstix.TEMPLATES, "web/*.html"))
 	return &Service{
 		repo:              repo,
+		updates:           make(chan string),
 		logger:            log.New(os.Stdout),
+		templates:         templates,
 		client:            retryClient.StandardClient(),
 		redirectURI:       redirectURI,
 		oauthClientID:     oauthClientID,

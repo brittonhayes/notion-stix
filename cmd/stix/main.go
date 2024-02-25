@@ -19,7 +19,6 @@ import (
 )
 
 func main() {
-
 	var (
 		repo  notionstix.Repository
 		store notionstix.Store

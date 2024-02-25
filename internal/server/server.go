@@ -55,6 +55,7 @@ func New(ctx context.Context, config *Config) *Server {
 		QuietDownRoutes: []string{
 			"/",
 			"/healthz",
+			"/api/events",
 		},
 		QuietDownPeriod: 10 * time.Second,
 	})

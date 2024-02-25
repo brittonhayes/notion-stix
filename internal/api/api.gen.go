@@ -102,6 +102,9 @@ type ServerInterface interface {
 	// Get homepage
 	// (GET /)
 	GetHomePage(w http.ResponseWriter, r *http.Request) *Response
+
+	// (GET /api/events)
+	GetEvents(w http.ResponseWriter, r *http.Request) *Response
 	// Import STIX data into Notion
 	// (GET /api/import)
 	ImportSTIX(w http.ResponseWriter, r *http.Request) *Response
@@ -122,6 +125,24 @@ func (siw *ServerInterfaceWrapper) GetHomePage(w http.ResponseWriter, r *http.Re
 
 	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := siw.Handler.GetHomePage(w, r)
+		if resp != nil {
+			if resp.body != nil {
+				render.Render(w, r, resp)
+			} else {
+				w.WriteHeader(resp.Code)
+			}
+		}
+	})
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetEvents operation middleware
+func (siw *ServerInterfaceWrapper) GetEvents(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := siw.Handler.GetEvents(w, r)
 		if resp != nil {
 			if resp.body != nil {
 				render.Render(w, r, resp)
@@ -305,6 +326,7 @@ func Handler(si ServerInterface, opts ...ServerOption) http.Handler {
 
 	r.Route(options.BaseURL, func(r chi.Router) {
 		r.Get("/", wrapper.GetHomePage)
+		r.Get("/api/events", wrapper.GetEvents)
 		r.Get("/api/import", wrapper.ImportSTIX)
 		r.Get("/auth/notion/callback", wrapper.Connect)
 	})
@@ -332,18 +354,19 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/9RUTa/bNhD8K8S2R0VyPnrRrSjS1ijaBsgDWqAwCpraJzGRSGa5erZh6L8XS0m2Etnp",
+	"u+ZiyORwdrgz3DMY3wXv0HGE8gzRNNjp9PmWyJN84FF3oUX5NL5CKN9s3mTQYYy6RijhD8/qZ9+7CoYM",
+	"AvmAxBbjFX+GR0+dZijBOn79CjLgU8DxL9ZIcvDCd543I5N1NQxDBoSfektYQfnPyHnF7y5kfv8BDcMg",
+	"B6x79KMAx9qwfDrdTWqtd+r9w/ZvtZXypGUBMuiphRIa5hDLojgcDrlL2Dx6EVhhNGRDApfw0NiobFTc",
+	"oLpDqX58t83VlpVuW3+I6uR7xV7ZCYFKcUOoOa20ra3RGVSVZi0rfqLNIYPWGnQRF7f4ffuwUuwDuuh7",
+	"Mph7qovpUCwEO2TAlttlA9gev2jAE1Icb/cy3+QbOSScOlgo4XX+Mt9ABkFzk7wt5KfG1NvPe/Me6QlT",
+	"Zw64j5ZRNb7DIG4lxrHgtoISfkH+1Xf4btwjjMGLZuF8tdnMDqJLVRiPXDTctdek3orLyqs/f0shin3X",
+	"aTqNVZeSWNdRkvUX7mEnyEIHW+DT/CimS66Uvx0RKfRVbzCRJJHp7IvIhLqThN662OcaA/maMEbVh0qy",
+	"MVUfhose2wVPfLfp27Q9hvDLDK3aPoIFC88RJw3M4IeVITqE1ppEW3yIAl368j3hI5TwXXEdMcU0X4px",
+	"uNzwShJJTrcqhYjUDFza9z9Xne0cYbOjPTfF+J4Lo9t2r83Hu738yTuHhr/6uNkrbYw4dvI9zbCDp48x",
+	"aLNO+sSZXhDpDhlJVJ5XcwUVoyjXdFJeZKuatGM1zT0rqE890gmyeRpMW/efRHarDEpr1TxHs+uch/Fi",
+	"/1boLFZ3aqbTXy26+waj9QznFwmbPd2lajHR3jJ1wbSa2mMmX0S2x7wPOWnbHvQp1yGAdHAqdRn8MqPE",
+	"zunvrGCxNMV+2A3/BQAA///jjjtJ3QcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

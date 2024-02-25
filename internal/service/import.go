@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,8 +12,8 @@ import (
 )
 
 type authenticationResponse struct {
-	pageID string
 	client *notion.Client
+	pageID string
 }
 
 func (s *Service) authenticate(w http.ResponseWriter, r *http.Request) (*authenticationResponse, error) {
@@ -51,26 +52,29 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
+	s.updates <- "Imported campaigns intel"
 
 	err = s.importGroupsIntelToNotionDB(w, r)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
+	s.updates <- "Imported APT groups intel"
 
 	err = s.importAttackPatternsIntelToNotionDB(w, r)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
+	s.updates <- "Imported attack patterns intel"
 
 	err = s.importMalwareIntelToNotionDB(w, r)
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
+	s.updates <- "Imported malware intel"
 
-	http.Redirect(w, r, NOTION_URL, http.StatusFound)
 	return nil
 }
 
@@ -97,6 +101,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		}
 
 		if i%10 == 0 || i == len(attackPatterns)-1 {
+			s.updates <- fmt.Sprintf("Imported %d of %d attack pattern intel records", i, len(attackPatterns))
 			s.logger.Info("imported attack patterns intel", "done", i, "total", len(attackPatterns))
 		}
 	}
@@ -127,6 +132,7 @@ func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Req
 		}
 
 		if i%10 == 0 || i == len(groups)-1 {
+			s.updates <- fmt.Sprintf("Imported %d of %d APT intel records", i, len(groups))
 			s.logger.Info("imported groups intel", "done", i, "total", len(groups))
 		}
 	}
@@ -158,6 +164,7 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		}
 
 		if i%10 == 0 || i == len(campaigns)-1 {
+			s.updates <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
 			s.logger.Info("imported campaign intel", "done", i, "total", len(campaigns))
 		}
 	}
@@ -188,6 +195,7 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 		}
 
 		if i%10 == 0 || i == len(malware)-1 {
+			s.updates <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
 			s.logger.Info("imported malware intel", "done", i, "total", len(malware))
 		}
 	}
