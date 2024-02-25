@@ -199,7 +199,7 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err := s.store.Get(fmt.Sprintf("%s-%s", botID, campaign.ID))
+		_, err := s.store.Get(fmt.Sprintf("%s-%s-%s", botID, sess.pageID, campaign.ID))
 		if err == kv.ErrKeyNotFound {
 			// Create the campaign page and store the result in the KV store
 			// if it doesn't exist
@@ -213,18 +213,18 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 				return err
 			}
 
-			err = s.store.Set(fmt.Sprintf("%s-%s", botID, campaign.ID), b)
+			err = s.store.Set(fmt.Sprintf("%s-%s-%s", botID, sess.pageID, campaign.ID), b)
 			if err != nil {
 				return err
 			}
-		}
 
-		go func() {
-			s.updates[botID] <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
-		}()
+			go func() {
+				s.updates[botID] <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
+			}()
 
-		if i%10 == 0 || i == len(campaigns)-1 {
-			s.logger.Info("imported campaign intel", "done", i, "total", len(campaigns))
+			if i%10 == 0 || i == len(campaigns)-1 {
+				s.logger.Info("imported campaign intel", "done", i, "total", len(campaigns))
+			}
 		}
 	}
 	return nil
