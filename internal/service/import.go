@@ -196,10 +196,11 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
+		go func() {
+			s.updates <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
+		}()
+
 		if i%10 == 0 || i == len(malware)-1 {
-			go func() {
-				s.updates <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
-			}()
 			s.logger.Info("imported malware intel", "done", i, "total", len(malware))
 		}
 	}
