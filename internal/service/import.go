@@ -56,7 +56,7 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
 	//
-	// err = s.importGroupsIntelToNotionDB(w, r)
+	// err = s.importIntrusionSetsIntelToNotionDB(w, r)
 	// if err != nil {
 	// 	s.logger.Error(err)
 	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
@@ -120,7 +120,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 	return nil
 }
 
-func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
+func (s *Service) importIntrusionSetsIntelToNotionDB(w http.ResponseWriter, r *http.Request) error {
 	ctx := context.Background()
 	sess, err := s.newSession(w, r)
 	if err != nil {
@@ -132,27 +132,27 @@ func (s *Service) importGroupsIntelToNotionDB(w http.ResponseWriter, r *http.Req
 		return err
 	}
 
-	db, err := s.repo.CreateGroupsDatabase(ctx, sess.client, sess.pageID)
+	db, err := s.repo.CreateIntrusionSetsDatabase(ctx, sess.client, sess.pageID)
 	if err != nil {
 		return err
 	}
 
-	groups := s.repo.ListGroups(s.repo.ListCollection())
-	for i, group := range groups {
+	intrusionSets := s.repo.ListIntrusionSets(s.repo.ListCollection())
+	for i, intrusionSet := range intrusionSets {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
 
-		_, err = s.repo.CreateGroupPage(ctx, sess.client, db.ID, group)
+		_, err = s.repo.CreateIntrusionSetPage(ctx, sess.client, db.ID, intrusionSet)
 		if err != nil {
 			return err
 		}
 
 		go func() {
-			s.updates[botID] <- fmt.Sprintf("Imported %d of %d APT intel records", i, len(groups))
+			s.updates[botID] <- fmt.Sprintf("Imported %d of %d APT Intrusion Set intel records", i, len(intrusionSets))
 		}()
 
-		if i%10 == 0 || i == len(groups)-1 {
-			s.logger.Info("imported groups intel", "done", i, "total", len(groups))
+		if i%10 == 0 || i == len(intrusionSets)-1 {
+			s.logger.Info("imported IntrusionSets intel", "done", i, "total", len(intrusionSets))
 		}
 	}
 

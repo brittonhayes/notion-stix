@@ -9,23 +9,23 @@ import (
 )
 
 const (
-	// groupDatabaseTitle is the title of the groups database.
-	groupDatabaseTitle = "MITRE ATT&CK - Groups"
-	groupDatabaseIcon  = "📁"
-	groupPageIcon      = "📁"
+	// intrusionSetDatabaseTitle is the title of the IntrusionSets database.
+	intrusionSetDatabaseTitle = "MITRE ATT&CK - Intrusion Sets"
+	intrusionSetDatabaseIcon  = "📁"
+	intrusionSetPageIcon      = "📁"
 )
 
-// Listgroups returns all the groups in the MITRE collection.
-func (m *MITRE) ListGroups(collection *stix2.Collection) []*stix2.IntrusionSet {
+// ListIntrusionSets returns all the IntrusionSets in the MITRE collection.
+func (m *MITRE) ListIntrusionSets(collection *stix2.Collection) []*stix2.IntrusionSet {
 	return m.Collection.IntrusionSets()
 }
 
-// CreategroupsDatabase creates a new groups database in Notion.
-func (m *MITRE) CreateGroupsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error) {
+// CreateIntrusionSetsDatabase creates a new IntrusionSets database in Notion.
+func (m *MITRE) CreateIntrusionSetsDatabase(ctx context.Context, client *notion.Client, parentPageID string) (notion.Database, error) {
 	params := notion.CreateDatabaseParams{
 		ParentPageID: parentPageID,
-		Title:        []notion.RichText{{Text: &notion.Text{Content: groupDatabaseTitle}}},
-		Description:  []notion.RichText{{Text: &notion.Text{Content: "A database of MITRE ATT&CK groups."}}},
+		Title:        []notion.RichText{{Text: &notion.Text{Content: intrusionSetDatabaseTitle}}},
+		Description:  []notion.RichText{{Text: &notion.Text{Content: "A database of MITRE ATT&CK IntrusionSets."}}},
 		Properties: notion.DatabaseProperties{
 			"Name": {
 				Type:  notion.DBPropTypeTitle,
@@ -50,16 +50,30 @@ func (m *MITRE) CreateGroupsDatabase(ctx context.Context, client *notion.Client,
 		},
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
-			Emoji: notion.StringPtr(groupDatabaseIcon),
+			Emoji: notion.StringPtr(intrusionSetDatabaseIcon),
 		},
 	}
 
-	m.Logger.Info("Creating Notion database", "title", groupDatabaseTitle)
+	m.Logger.Info("Creating Notion database", "title", intrusionSetDatabaseTitle)
 	return client.CreateDatabase(ctx, params)
 }
 
-// CreateGroupPage creates a new group page in the specified groups database.
-func (m *MITRE) CreateGroupPage(ctx context.Context, client *notion.Client, databaseID string, group *stix2.IntrusionSet) (notion.Page, error) {
+// CreateIntrusionSetPage creates a new IntrusionSet page in the specified IntrusionSets database.
+func (m *MITRE) CreateIntrusionSetPage(ctx context.Context, client *notion.Client, databaseID string, IntrusionSet *stix2.IntrusionSet) (notion.Page, error) {
+	properties := marshalIntrusionSet(createIntrusionSetPageParams{
+		ParentID:     databaseID,
+		IntrusionSet: IntrusionSet,
+	})
+	m.Logger.Debug("Creating page", "name", IntrusionSet.Name, "type", "IntrusionSet")
+	return client.CreatePage(ctx, properties)
+}
+
+type createIntrusionSetPageParams struct {
+	IntrusionSet *stix2.IntrusionSet
+	ParentID     string
+}
+
+func marshalIntrusionSet(params createIntrusionSetPageParams) notion.CreatePageParams {
 	var blocks []notion.Block
 
 	blocks = append(blocks, []notion.Block{
@@ -68,25 +82,24 @@ func (m *MITRE) CreateGroupPage(ctx context.Context, client *notion.Client, data
 		},
 	}...)
 
-	blocks = append(blocks, referencesToBlocks(group.ExternalReferences)...)
+	blocks = append(blocks, referencesToBlocks(params.IntrusionSet.ExternalReferences)...)
 
 	properties := notion.CreatePageParams{
 		ParentType: notion.ParentTypeDatabase,
-		ParentID:   databaseID,
+		ParentID:   params.ParentID,
 		Children:   blocks,
-		Icon:       &notion.Icon{Type: notion.IconTypeEmoji, Emoji: notion.StringPtr(groupPageIcon)},
+		Icon:       &notion.Icon{Type: notion.IconTypeEmoji, Emoji: notion.StringPtr(intrusionSetPageIcon)},
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
 				Type:  notion.DBPropTypeTitle,
-				Title: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.Name}}},
+				Title: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.IntrusionSet.Name}}},
 			},
-			"Description": notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.Description}}}},
-			"Motivation":  notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: group.PrimaryMotivation}}}},
-			"Created":     notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(group.Created.Time, false)}},
+			"Description": notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.IntrusionSet.Description}}}},
+			"Motivation":  notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.IntrusionSet.PrimaryMotivation}}}},
+			"Created":     notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(params.IntrusionSet.Created.Time, false)}},
 			"Imported":    notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(time.Now(), false)}},
 		},
 	}
 
-	m.Logger.Debug("Creating page", "name", group.Name, "type", "group")
-	return client.CreatePage(ctx, properties)
+	return properties
 }
