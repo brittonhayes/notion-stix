@@ -56,6 +56,8 @@
             <button
               class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
               hx-get="/api/import"
+              hx-swap="none"
+              hx-confirm="Are you sure you want to import MITRE ATT&CK into your Notion workspace?"
             >
               <span class="flex">
                 <span class="pr-2">Upload MITRE ATT&CK</span>

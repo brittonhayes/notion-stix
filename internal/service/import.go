@@ -172,8 +172,6 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		return err
 	}
 
-	campaigns := s.repo.ListCampaigns()
-
 	// Check if the campaign database already exists in the kv store
 	// if it does, return early
 	_, err = s.store.Get(fmt.Sprintf("%s-%s-%s", botID, sess.pageID, "campaigns"))
@@ -196,6 +194,7 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 		return err
 	}
 
+	campaigns := s.repo.ListCampaigns()
 	for i, campaign := range campaigns {
 		r := s.limiter.Reserve()
 		time.Sleep(r.Delay())
