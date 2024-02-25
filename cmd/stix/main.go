@@ -19,7 +19,6 @@ import (
 )
 
 func main() {
-
 	var (
 		repo  notionstix.Repository
 		store notionstix.Store
@@ -93,6 +92,13 @@ func main() {
 				Value:    8080,
 				Category: "Application",
 			},
+			&cli.StringFlag{
+				Name:     "environment",
+				Usage:    "The environment to run the server in",
+				EnvVars:  []string{"ENVIRONMENT"},
+				Value:    "production",
+				Category: "Application",
+			},
 		},
 		Before: func(c *cli.Context) error {
 			b, err := notionstix.FS.ReadFile(mitre.STIX_JSON)
@@ -124,7 +130,7 @@ func main() {
 					store,
 				),
 				ServiceName: "stix",
-				Environment: "production",
+				Environment: c.String("environment"),
 				Port:        c.Int("port"),
 			}
 			s := server.New(c.Context, config)

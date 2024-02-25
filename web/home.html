@@ -1,62 +1,129 @@
 {{ define "home" }}
-<!DOCTYPE html>
+<!doctype html>
 <html>
-{{ template "head" }}
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Primary Meta Tags -->
+    <title>Notion STIX</title>
+    <meta name="title" content="Notion STIX" />
+    <meta name="description" content="Notion threat intelligence integration" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://notion-stix.up.railway.app" />
+    <meta property="og:title" content="Notion STIX" />
+    <meta property="og:description" content="Notion threat intelligence integration" />
+    <meta property="og:image" content="https://repository-images.githubusercontent.com/753885390/10d55d07-4ad9-4f9a-8acc-be58ac35d200" />
+    <meta name="theme-color" content="#111111" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://notion-stix.up.railway.app" />
+    <meta property="twitter:title" content="Notion STIX" />
+    <meta property="twitter:image" content="https://repository-images.githubusercontent.com/753885390/10d55d07-4ad9-4f9a-8acc-be58ac35d200" />
+    <meta property="twitter:description" content="Notion threat intelligence integration" />
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="https://unpkg.com/htmx.org@1.9.10"
+      integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+    <style>
+      body {
+        background: #111111;
+        background-image: radial-gradient(#242121 5%, transparent 0);
+        background-size: 35px 35px;
+      }
+    </style>
+  </head>
 
-<body>
+  <body>
     <section class="h-screen">
-        <div class="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:h-screen lg:items-center">
-            <div class="mx-auto max-w-3xl text-center">
-                <h1 class="title font-serif text-7xl text-white font-bold sm:text-8xl">
-                    Notion STIX
-                </h1>
-                <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">
-                    Integrate Threat intelligence into your Notion workspace
-                </p>
-                {{ if .Authenticated }}
-                <div class="my-6 flex flex-row justify-center">
-                    <p class="text-white px-1">
-                        <span class="font-bold">Status:</span>&nbsp;Connected
-                    </p>
-                    <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
-                </div>
-                {{ end }}
-                <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
-                    {{ if .Authenticated }}
-                    <button
-                        class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
-                        hx-get="/api/import">
-                        <span class="flex">
-                            <span class="pr-2">Upload MITRE ATT&CK</span>
-                            <i data-feather="arrow-up-circle"></i>
-                        </span>
-                    </button>
-                    <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
-                        href="{{.IntegrationURL}}"
-                        target="_blank">
-                        <span class="flex">
-                            <span>Reset</span>
-                        </span>
-                    </a>
-                    {{ end }}
-                    {{ if not .Authenticated }}
-                    <a class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
-                        href="{{.IntegrationURL}}"
-                        target="_blank">
-                        <span class="flex">
-                            <span class="pr-3">Connect to Notion</span>
-                            <i class="text-black/80" data-feather="external-link"></i>
-                        </span>
-                    </a>
-                    {{ end }}
-                </div>
-                {{ template "footer" }}
-            </div>
+      <div class="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:h-screen lg:items-center">
+        <div class="mx-auto max-w-3xl text-center">
+          <h1 class="title font-serif text-7xl text-white font-bold sm:text-8xl">Notion STIX</h1>
+          <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">Integrate Threat intelligence into your Notion workspace</p>
+          {{ if .Authenticated }}
+          <div class="my-6 flex flex-row justify-center">
+            <p class="text-white px-1"><span class="font-bold">Status:</span>&nbsp;Connected</p>
+            <i class="text-xs text-green-500 rounded-md" data-feather="check"></i>
+            <div hx-ext="sse" sse-connect="/api/events" sse-swap="message" class="text-white"></div>
+          </div>
+          {{ end }}
+          <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
+            {{ if .Authenticated }}
+            <button
+              class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+              hx-get="/api/import"
+            >
+              <span class="flex">
+                <span class="pr-2">Upload MITRE ATT&CK</span>
+                <i data-feather="arrow-up-circle"></i>
+              </span>
+            </button>
+            <a
+              class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+              href="{{.IntegrationURL}}"
+              target="_blank"
+            >
+              <span class="flex">
+                <span>Reset</span>
+              </span>
+            </a>
+            {{ end }}
+            <a
+              class="flex justify-around items-center rounded-md font-semibold py-3 w-3/4 md:w-auto px-6 inset-0 border text-black bg-white hover:bg-[#dadada]"
+              href="{{.IntegrationURL}}"
+              target="_blank"
+            >
+              <span class="flex">
+                <span class="pr-3">Connect to Notion</span>
+                <i class="text-black/80" data-feather="external-link"></i>
+              </span>
+            </a>
+          </div>
+          <div class="flex flex-row justify-center">
+            <p class="block w-full mt-24 px-6 sm:w-2/3 italic md:text-lg text-md text-white/25 break-words">
+              *The Notion STIX integration is not affiliated with Notion Labs in any way and is a community project.
+            </p>
+          </div>
+          <div class="flex flex-row justify-center items-center mt-5">
+            <a
+              class="block rounded-xl w-3/4 md:w-auto px-3 inset-0 text-white hover:underline focus:outline-none focus:ring active:bg-white"
+              href="https://github.com/brittonhayes/notion-stix/blob/main/docs/PRIVACY_POLICY.md"
+              target="_blank"
+            >
+              <span class="flex justify-center">
+                <p>Privacy Policy</p>
+              </span>
+            </a>
+            <a
+              class="block rounded-xl w-3/4 md:w-auto px-3 inset-0 text-white hover:underline focus:outline-none focus:ring active:bg-white"
+              href="https://github.com/brittonhayes/notion-stix/blob/main/docs/TERMS_OF_USE.md"
+              target="_blank"
+            >
+              <span class="flex justify-center">
+                <p>Terms of Use</p>
+              </span>
+            </a>
+            <a
+              class="block rounded-xl w-3/4 md:w-auto px-3 inset-0 text-white hover:underline focus:outline-none focus:ring active:bg-white"
+              href="https://github.com/brittonhayes/notion-stix"
+              target="_blank"
+            >
+              <span class="flex justify-center">
+                <p>GitHub</p>
+              </span>
+            </a>
+          </div>
         </div>
+      </div>
     </section>
-    {{ template "scripts" }}
-</body>
-
+    <script type="application/javascript">
+      feather.replace();
+    </script>
+  </body>
 </html>
-
 {{ end }}
