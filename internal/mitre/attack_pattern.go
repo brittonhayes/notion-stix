@@ -66,6 +66,20 @@ func (m *MITRE) CreateAttackPatternsDatabase(ctx context.Context, client *notion
 
 // CreateAttackPatternPage creates a new attack pattern page in the specified database.
 func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Client, databaseID string, attackPattern *stix2.AttackPattern) (notion.Page, error) {
+	m.Logger.Debug("Creating page", "name", attackPattern.Name, "type", "attack-pattern")
+	properties := marshalAttackPattern(createAttackPatternPageParams{
+		ParentID:      databaseID,
+		AttackPattern: attackPattern,
+	})
+	return client.CreatePage(ctx, properties)
+}
+
+type createAttackPatternPageParams struct {
+	AttackPattern *stix2.AttackPattern
+	ParentID      string
+}
+
+func marshalAttackPattern(params createAttackPatternPageParams) notion.CreatePageParams {
 	var blocks []notion.Block
 	blocks = append(blocks, []notion.Block{
 		notion.Heading2Block{
@@ -73,45 +87,44 @@ func (m *MITRE) CreateAttackPatternPage(ctx context.Context, client *notion.Clie
 		},
 	}...)
 
-	blocks = append(blocks, referencesToBlocks(attackPattern.ExternalReferences)...)
+	blocks = append(blocks, referencesToBlocks(params.AttackPattern.ExternalReferences)...)
 
 	properties := notion.CreatePageParams{
-		ParentID:   databaseID,
+		ParentID:   params.ParentID,
 		ParentType: notion.ParentTypeDatabase,
 		Icon: &notion.Icon{
 			Type:  notion.IconTypeEmoji,
 			Emoji: notion.StringPtr(attackPatternPageIcon),
 		},
 		Title: []notion.RichText{
-			{Text: &notion.Text{Content: attackPattern.Name}},
+			{Text: &notion.Text{Content: params.AttackPattern.Name}},
 		},
 		Children: blocks,
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeTitle,
 				Title: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: attackPattern.Name}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.AttackPattern.Name}},
 				},
 			},
 			"Description": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(attackPattern.Description, 2000)}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: limitString(params.AttackPattern.Description, 2000)}},
 				},
 			},
 			"Killchain Phase": notion.DatabasePageProperty{
 				Type:        notion.DBPropTypeMultiSelect,
-				MultiSelect: killchainPhaseToSelect(attackPattern.KillChainPhase),
+				MultiSelect: killchainPhaseToSelect(params.AttackPattern.KillChainPhase),
 			},
 			"Created": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
-					Start: notion.NewDateTime(attackPattern.Created.Time, false),
+					Start: notion.NewDateTime(params.AttackPattern.Created.Time, false),
 				},
 			},
 		},
 	}
 
-	// m.Logger.Debug("Creating page", "name", attackPattern.Name, "type", "attack-pattern")
-	return client.CreatePage(ctx, properties)
+	return properties
 }

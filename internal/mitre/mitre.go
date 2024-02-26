@@ -37,8 +37,6 @@ func WithCollection(collection *stix2.Collection) Option {
 	}
 }
 
-// TODO: Write some unit tests for these internal functions
-
 // limitString truncates a string to a specified limit.
 func limitString(s string, limit int) string {
 	if len(s) <= limit {
