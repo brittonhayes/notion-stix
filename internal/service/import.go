@@ -220,6 +220,7 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 			}
 
 			go func() {
+				s.logger.Info("updating bot", "id", botID, "message", fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns)))
 				s.updates[botID] <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
 			}()
 
