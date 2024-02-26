@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/brittonhayes/notion-stix/internal/cookies"
@@ -20,7 +19,7 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	_, cancel := context.WithCancel(r.Context())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
@@ -29,14 +28,20 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
-	for update := range s.updates[botID] {
-		s.logger.Info("sending update", update)
-		fmt.Fprintf(w, "data: %s \n\n", update)
-		w.(http.Flusher).Flush()
-		time.Sleep(1 * time.Second)
-	}
+	go func() {
+		for update := range s.updates[botID] {
+			fmt.Fprintf(w, "data: %s \n\n", update)
+			w.(http.Flusher).Flush()
+		}
+	}()
 
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-s.updates[botID]:
+		}
+	}
 }
 
 func (s *Service) GetHomePage(w http.ResponseWriter, r *http.Request) *api.Response {
