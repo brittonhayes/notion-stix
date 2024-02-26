@@ -48,7 +48,7 @@
           {{ if .Authenticated }}
           <div class="my-6 flex flex-row justify-center">
             <p class="text-white px-1"><span class="font-bold">Status:</span></p>
-            <div hx-ext="sse" sse-connect="/api/events" sse-swap="message" class="text-white"></div>
+            <div hx-ext="sse" sse-connect="/api/events" sse-swap="message" class="text-white">Connected</div>
           </div>
           {{ end }}
           <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">

@@ -45,10 +45,14 @@ func (s *Service) newSession(w http.ResponseWriter, r *http.Request) (*session, 
 }
 
 func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Response {
-	botID, err := cookies.Read(r, "bot_id")
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
+
+	go func() {
+		s.updates[botID] <- "Starting import..."
+	}()
 
 	err = s.importCampaignsIntelToNotionDB(w, r)
 	if err != nil {
