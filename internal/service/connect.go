@@ -93,12 +93,11 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	}
 
 	botCookie := http.Cookie{
-		Name:  "bot_id",
-		Value: body.BotID,
-		// TODO: Poosible that bot cookie not able to be read on /api/import endpoint
-		// Secure:   true,
+		Name:     "bot_id",
+		Value:    body.BotID,
+		Secure:   true,
 		HttpOnly: true,
-		// Path:     "/",
+		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	}
 
