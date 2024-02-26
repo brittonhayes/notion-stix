@@ -93,11 +93,12 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	}
 
 	botCookie := http.Cookie{
-		Name:     "bot_id",
-		Value:    body.BotID,
-		Secure:   true,
+		Name:  "bot_id",
+		Value: body.BotID,
+		// TODO: Poosible that bot cookie not able to be read on /api/import endpoint
+		// Secure:   true,
 		HttpOnly: true,
-		Path:     "/",
+		// Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	}
 
@@ -107,6 +108,10 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 		return api.ConnectJSON500Response(api.Error{Message: err.Error(), Code: http.StatusBadRequest})
 	}
 
+	// TODO: this appears to work but it doesn't send
+	// the follow up updates in the import process.
+	// It's possible that the cookie is not being received.
+	// This is a good place to start debugging.
 	go func() {
 		s.updates[body.BotID] <- "Connected"
 	}()

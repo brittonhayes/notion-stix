@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -51,12 +50,8 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
-	wg := sync.WaitGroup{}
-
-	wg.Add(1)
 	go func() {
 		s.updates[botID] <- "Starting import..."
-		wg.Done()
 	}()
 
 	err = s.importCampaignsIntelToNotionDB(w, r)
@@ -83,12 +78,9 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	// }
 
-	wg.Add(1)
 	go func() {
 		s.updates[botID] <- "All records imported."
 	}()
-
-	wg.Wait()
 
 	return nil
 }
