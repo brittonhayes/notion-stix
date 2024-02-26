@@ -196,13 +196,14 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 
 	campaigns := s.repo.ListCampaigns()
 	for i, campaign := range campaigns {
-		r := s.limiter.Reserve()
-		time.Sleep(r.Delay())
 
 		_, err := s.store.Get(fmt.Sprintf("%s-%s-%s", botID, sess.pageID, campaign.ID))
 		if err == kv.ErrKeyNotFound {
 			// Create the campaign page and store the result in the KV store
 			// if it doesn't exist
+			//
+			r := s.limiter.Reserve()
+			time.Sleep(r.Delay())
 			page, err := s.repo.CreateCampaignPage(ctx, sess.client, campaignDB, campaign)
 			if err != nil {
 				return err

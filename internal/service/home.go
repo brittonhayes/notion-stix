@@ -25,10 +25,12 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 
 	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
+		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
 	for update := range s.updates[botID] {
+		s.logger.Info("sending update", update)
 		fmt.Fprintf(w, "data: %s \n\n", update)
 		w.(http.Flusher).Flush()
 		time.Sleep(1 * time.Second)
