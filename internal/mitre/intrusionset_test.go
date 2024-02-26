@@ -10,40 +10,39 @@ import (
 )
 
 func TestMarshalIntrusionSet(t *testing.T) {
-	arg := createIntrusionSetPageParams{
-		ParentID: "1234",
+	arg := intrusionSet{
 		IntrusionSet: &stix2.IntrusionSet{
 			Name:              "APT1",
 			Description:       "APT1 is a Chinese threat actor group that has been attributed to the Chinese People's Liberation Army (PLA) Third Department 12th Bureau.",
 			PrimaryMotivation: "Espionage",
 		},
 	}
-	arg.IntrusionSet.Created = &stix2.Timestamp{Time: time.Now()}
+	arg.Created = &stix2.Timestamp{Time: time.Now()}
 
 	want := &notion.CreatePageParams{
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeTitle,
 				Title: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: arg.IntrusionSet.Name}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: arg.Name}},
 				},
 			},
 			"Description": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: arg.IntrusionSet.Description}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: arg.Description}},
 				},
 			},
 			"Motivation": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeRichText,
 				RichText: []notion.RichText{
-					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: arg.IntrusionSet.PrimaryMotivation}},
+					{Type: notion.RichTextTypeText, Text: &notion.Text{Content: arg.PrimaryMotivation}},
 				},
 			},
 			"Created": notion.DatabasePageProperty{
 				Type: notion.DBPropTypeDate,
 				Date: &notion.Date{
-					Start: notion.NewDateTime(arg.IntrusionSet.Created.Time, false),
+					Start: notion.NewDateTime(arg.Created.Time, false),
 				},
 			},
 			"Imported": notion.DatabasePageProperty{
@@ -55,7 +54,7 @@ func TestMarshalIntrusionSet(t *testing.T) {
 		},
 	}
 
-	got := marshalIntrusionSet(arg)
+	got := arg.toNotionPageParams("123")
 
 	t.Run("Intrusion set page parent type is database", func(t *testing.T) {
 		assert.Equal(t, got.ParentType, notion.ParentTypeDatabase)

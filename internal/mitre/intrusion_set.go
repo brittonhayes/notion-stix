@@ -60,20 +60,20 @@ func (m *MITRE) CreateIntrusionSetsDatabase(ctx context.Context, client *notion.
 
 // CreateIntrusionSetPage creates a new IntrusionSet page in the specified IntrusionSets database.
 func (m *MITRE) CreateIntrusionSetPage(ctx context.Context, client *notion.Client, databaseID string, IntrusionSet *stix2.IntrusionSet) (notion.Page, error) {
-	properties := marshalIntrusionSet(createIntrusionSetPageParams{
-		ParentID:     databaseID,
+	is := intrusionSet{
 		IntrusionSet: IntrusionSet,
-	})
+	}
+
+	properties := is.toNotionPageParams(databaseID)
 	m.Logger.Debug("Creating page", "name", IntrusionSet.Name, "type", "IntrusionSet")
 	return client.CreatePage(ctx, properties)
 }
 
-type createIntrusionSetPageParams struct {
-	IntrusionSet *stix2.IntrusionSet
-	ParentID     string
+type intrusionSet struct {
+	*stix2.IntrusionSet
 }
 
-func marshalIntrusionSet(params createIntrusionSetPageParams) notion.CreatePageParams {
+func (i *intrusionSet) toNotionPageParams(parentID string) notion.CreatePageParams {
 	var blocks []notion.Block
 
 	blocks = append(blocks, []notion.Block{
@@ -82,21 +82,21 @@ func marshalIntrusionSet(params createIntrusionSetPageParams) notion.CreatePageP
 		},
 	}...)
 
-	blocks = append(blocks, referencesToBlocks(params.IntrusionSet.ExternalReferences)...)
+	blocks = append(blocks, referencesToBlocks(i.ExternalReferences)...)
 
 	properties := notion.CreatePageParams{
 		ParentType: notion.ParentTypeDatabase,
-		ParentID:   params.ParentID,
+		ParentID:   parentID,
 		Children:   blocks,
 		Icon:       &notion.Icon{Type: notion.IconTypeEmoji, Emoji: notion.StringPtr(intrusionSetPageIcon)},
 		DatabasePageProperties: &notion.DatabasePageProperties{
 			"Name": notion.DatabasePageProperty{
 				Type:  notion.DBPropTypeTitle,
-				Title: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.IntrusionSet.Name}}},
+				Title: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: i.Name}}},
 			},
-			"Description": notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.IntrusionSet.Description}}}},
-			"Motivation":  notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: params.IntrusionSet.PrimaryMotivation}}}},
-			"Created":     notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(params.IntrusionSet.Created.Time, false)}},
+			"Description": notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: i.Description}}}},
+			"Motivation":  notion.DatabasePageProperty{Type: notion.DBPropTypeRichText, RichText: []notion.RichText{{Type: notion.RichTextTypeText, Text: &notion.Text{Content: i.PrimaryMotivation}}}},
+			"Created":     notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(i.Created.Time, false)}},
 			"Imported":    notion.DatabasePageProperty{Type: notion.DBPropTypeDate, Date: &notion.Date{Start: notion.NewDateTime(time.Now(), false)}},
 		},
 	}
