@@ -46,10 +46,10 @@
           <h1 class="title font-serif text-7xl text-white font-bold sm:text-8xl">Notion STIX</h1>
           <p class="mx-auto text-white mt-4 max-w-xl sm:text-3xl/relaxed">Integrate Threat intelligence into your Notion workspace</p>
           {{ if .Authenticated }}
-          <div class="my-6 flex flex-row justify-center">
-            <p class="text-white px-1"><span class="font-bold">Status:</span></p>
-            <div hx-ext="sse" sse-connect="/api/events" sse-swap="message" class="text-white">Connected</div>
-          </div>
+          <!-- <div class="my-6 flex flex-row justify-center"> -->
+          <!--   <p class="text-white px-1"><span class="font-bold">Status:</span></p> -->
+          <!--   <div hx-ext="sse" sse-connect="/api/events" sse-swap="message" class="text-white">Connected</div> -->
+          <!-- </div> -->
           {{ end }}
           <div class="mt-8 flex flex-wrap justify-evenly md:justify-center gap-4">
             {{ if .Authenticated }}

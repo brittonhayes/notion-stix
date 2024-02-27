@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -51,12 +50,8 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
-	wg := sync.WaitGroup{}
-
-	wg.Add(1)
 	go func() {
 		s.broker.Publish(botID, "Starting import...")
-		wg.Done()
 		// s.updates[botID] <- "Starting import..."
 	}()
 
@@ -65,32 +60,29 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	}
-	//
-	// err = s.importIntrusionSetsIntelToNotionDB(w, r)
-	// if err != nil {
-	// 	s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
-	//
-	// err = s.importAttackPatternsIntelToNotionDB(w, r)
-	// if err != nil {
-	// 	s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
-	//
-	// err = s.importMalwareIntelToNotionDB(w, r)
-	// if err != nil {
-	// 	s.logger.Error(err)
-	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
-	// }
 
-	wg.Add(1)
+	err = s.importIntrusionSetsIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
+	err = s.importAttackPatternsIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
+	err = s.importMalwareIntelToNotionDB(w, r)
+	if err != nil {
+		s.logger.Error(err)
+		return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
+	}
+
 	go func() {
 		s.broker.Publish(botID, "All records imported.")
-		wg.Done()
 		// s.updates[botID] <- "All records imported."
 	}()
-	wg.Wait()
 
 	return nil
 }
