@@ -21,13 +21,13 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
+	_, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
-	go s.subscribers[botID].Listen(w)
+	// go s.subscribers[botID].Listen(w)
 
 	// go func() {
 	// 	for update := range s.updates[botID] {
