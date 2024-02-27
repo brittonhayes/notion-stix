@@ -115,7 +115,11 @@ func (s *Service) Connect(w http.ResponseWriter, r *http.Request, params api.Con
 	// 	s.updates[body.BotID] <- "Connected"
 	// }()
 	//
-	s.subscribers[body.BotID] = s.broker.AddSubscriber()
+
+	s1 := s.broker.AddSubscriber()
+	s1.AddTopic(body.BotID)
+
+	s.subscribers[body.BotID] = s1
 	s.broker.Subscribe(s.subscribers[body.BotID], body.BotID)
 
 	http.Redirect(w, r, NOTION_URL, http.StatusFound)

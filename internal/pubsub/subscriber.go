@@ -80,8 +80,9 @@ func (s *Subscriber) Listen(w http.ResponseWriter) {
 	// Listens to the message channel, prints once received.
 	for {
 		if msg, ok := <-s.messages; ok {
-			fmt.Fprintf(w, "data: %s \n\n", msg.GetMessageBody())
-			w.(http.Flusher).Flush()
+			fmt.Printf("data: %s \n", msg.GetMessageBody())
+			// fmt.Fprintf(w, "data: %s \n\n", msg.GetMessageBody())
+			// w.(http.Flusher).Flush()
 		}
 	}
 }
