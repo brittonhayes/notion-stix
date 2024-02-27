@@ -10,6 +10,7 @@ import (
 	"golang.org/x/time/rate"
 
 	notionstix "github.com/brittonhayes/notion-stix"
+	"github.com/brittonhayes/notion-stix/internal/pubsub"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -32,6 +33,9 @@ type Service struct {
 	limiter *rate.Limiter
 	updates map[string]chan string
 
+	subscribers map[string]*pubsub.Subscriber
+	broker      *pubsub.Broker
+
 	client    *http.Client
 	logger    *log.Logger
 	templates *template.Template
@@ -52,6 +56,7 @@ func New(repo notionstix.Repository, redirectURI string, oauthClientID string, o
 	return &Service{
 		repo:              repo,
 		updates:           make(map[string]chan string),
+		broker:            pubsub.NewBroker(),
 		logger:            log.New(os.Stdout),
 		templates:         templates,
 		client:            retryClient.StandardClient(),

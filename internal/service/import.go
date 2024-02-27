@@ -51,7 +51,8 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	}
 
 	go func() {
-		s.updates[botID] <- "Starting import..."
+		s.broker.Publish(botID, "Starting import...")
+		// s.updates[botID] <- "Starting import..."
 	}()
 
 	err = s.importCampaignsIntelToNotionDB(w, r)
@@ -79,7 +80,8 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	// }
 
 	go func() {
-		s.updates[botID] <- "All records imported."
+		s.broker.Publish(botID, "All records imported.")
+		// s.updates[botID] <- "All records imported."
 	}()
 
 	return nil

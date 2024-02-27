@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -28,20 +27,17 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
-	go func() {
-		for update := range s.updates[botID] {
-			fmt.Fprintf(w, "data: %s \n\n", update)
-			w.(http.Flusher).Flush()
-		}
-	}()
+	go s.subscribers[botID].Listen(w)
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-s.updates[botID]:
-		}
-	}
+	// go func() {
+	// 	for update := range s.updates[botID] {
+	// 		fmt.Fprintf(w, "data: %s \n\n", update)
+	// 		w.(http.Flusher).Flush()
+	// 	}
+	// }()
+
+	<-ctx.Done()
+	return nil
 }
 
 func (s *Service) GetHomePage(w http.ResponseWriter, r *http.Request) *api.Response {
