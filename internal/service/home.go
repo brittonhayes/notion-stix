@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
 	"github.com/brittonhayes/notion-stix/internal/cookies"
@@ -21,13 +22,15 @@ func (s *Service) GetEvents(w http.ResponseWriter, r *http.Request) *api.Respons
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	_, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
+	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		s.logger.Error(err)
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
-	// go s.subscribers[botID].Listen(w)
+	time.Sleep(10 * time.Second)
+
+	go s.subscribers[botID].Listen(w)
 
 	// go func() {
 	// 	for update := range s.updates[botID] {
