@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/brittonhayes/notion-stix/internal/api"
@@ -50,8 +51,12 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 		return api.ImportSTIXJSON500Response(api.Error{Message: "internal server error caused by missing bot_id cookie", Code: http.StatusInternalServerError})
 	}
 
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
 	go func() {
 		s.broker.Publish(botID, "Starting import...")
+		wg.Done()
 		// s.updates[botID] <- "Starting import..."
 	}()
 
@@ -79,10 +84,13 @@ func (s *Service) ImportSTIX(w http.ResponseWriter, r *http.Request) *api.Respon
 	// 	return api.ImportSTIXJSON500Response(api.Error{Message: ErrImportSTIX, Code: http.StatusInternalServerError})
 	// }
 
+	wg.Add(1)
 	go func() {
 		s.broker.Publish(botID, "All records imported.")
+		wg.Done()
 		// s.updates[botID] <- "All records imported."
 	}()
+	wg.Wait()
 
 	return nil
 }
@@ -94,7 +102,7 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 		return err
 	}
 
-	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
+	_, err = cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
@@ -114,9 +122,9 @@ func (s *Service) importAttackPatternsIntelToNotionDB(w http.ResponseWriter, r *
 			return err
 		}
 
-		go func() {
-			s.updates[botID] <- fmt.Sprintf("Imported %d of %d attack pattern intel records", i, len(attackPatterns))
-		}()
+		// go func() {
+		// 	s.updates[botID] <- fmt.Sprintf("Imported %d of %d attack pattern intel records", i, len(attackPatterns))
+		// }()
 
 		if i%10 == 0 || i == len(attackPatterns)-1 {
 			s.logger.Info("imported attack patterns intel", "done", i, "total", len(attackPatterns))
@@ -133,7 +141,7 @@ func (s *Service) importIntrusionSetsIntelToNotionDB(w http.ResponseWriter, r *h
 		return err
 	}
 
-	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
+	_, err = cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
@@ -153,10 +161,10 @@ func (s *Service) importIntrusionSetsIntelToNotionDB(w http.ResponseWriter, r *h
 			return err
 		}
 
-		go func() {
-			s.updates[botID] <- fmt.Sprintf("Imported %d of %d APT Intrusion Set intel records", i, len(intrusionSets))
-		}()
-
+		// go func() {
+		// 	s.updates[botID] <- fmt.Sprintf("Imported %d of %d APT Intrusion Set intel records", i, len(intrusionSets))
+		// }()
+		//
 		if i%10 == 0 || i == len(intrusionSets)-1 {
 			s.logger.Info("imported IntrusionSets intel", "done", i, "total", len(intrusionSets))
 		}
@@ -227,7 +235,7 @@ func (s *Service) importCampaignsIntelToNotionDB(w http.ResponseWriter, r *http.
 
 			go func() {
 				s.logger.Info("updating bot", "id", botID, "message", fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns)))
-				s.updates[botID] <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
+				// s.updates[botID] <- fmt.Sprintf("Imported %d of %d campaign intel records", i, len(campaigns))
 			}()
 
 			if i%10 == 0 || i == len(campaigns)-1 {
@@ -246,7 +254,7 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 		return err
 	}
 
-	botID, err := cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
+	_, err = cookies.ReadEncrypted(r, "bot_id", []byte(s.cookieSecret))
 	if err != nil {
 		return err
 	}
@@ -266,9 +274,9 @@ func (s *Service) importMalwareIntelToNotionDB(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		go func() {
-			s.updates[botID] <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
-		}()
+		// go func() {
+		// 	s.updates[botID] <- fmt.Sprintf("Imported %d of %d malware intel records", i, len(malware))
+		// }()
 
 		if i%10 == 0 || i == len(malware)-1 {
 			s.logger.Info("imported malware intel", "done", i, "total", len(malware))
