@@ -13,7 +13,7 @@ require (
 	github.com/go-chi/httplog/v2 v2.0.9
 	github.com/go-chi/httprate v0.8.0
 	github.com/go-chi/render v1.0.3
-	github.com/hashicorp/go-retryablehttp v0.7.5
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.4
 	github.com/unrolled/secure v1.14.0
@@ -62,7 +62,7 @@ require (
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
